@@ -1,4 +1,4 @@
-import { Center, Container, Loader } from "@mantine/core";
+import { Center, Container } from "@mantine/core";
 import Title from "../../components/Layout/Title";
 import { useState } from "react";
 import Login from "./components/Login";

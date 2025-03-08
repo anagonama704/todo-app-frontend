@@ -63,23 +63,11 @@ const LoginForm = ({
             radius="md"
           />
 
-          <Button type="submit" radius="xl">
+          <Button type="submit" radius="xl" color="#59B5F8">
             ログイン
           </Button>
         </Stack>
       </form>
-      <Link
-        to="/register"
-        style={{
-          display: "block",
-          textAlign: "center",
-          marginTop: "1rem",
-          textDecoration: "none",
-          color: "#59B5F8",
-        }}
-      >
-        新規登録はこちら
-      </Link>
     </Container>
   );
 };

@@ -63,8 +63,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!response.token) {
         throw new Error("トークンが見つかりません");
       }
-      localStorage.setItem("token", response.token);
-      set({ user: response.user, token: response.token, isLoading: false });
     } catch (error) {
       set({ error: "新規登録に失敗しました", isLoading: false });
       throw error;
