@@ -7,6 +7,12 @@ export const mockUsers: User[] = [
     password: "password123",
     name: "テストユーザー",
   },
+  {
+    id: "2",
+    email: "root@aa",
+    password: "123456",
+    name: "テストユーザー2",
+  },
 ];
 
 export const generateToken = (

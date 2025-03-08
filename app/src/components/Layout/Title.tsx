@@ -1,5 +1,4 @@
 import { Container, Flex, Image, Title as Titles } from "@mantine/core";
-import logo from "/images/logo.png";
 
 const Title = () => {
   return (

@@ -22,7 +22,7 @@ export const PrivateRoute = ({ children }: PrivateRouteProps) => {
   }
 
   if (!token) {
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
