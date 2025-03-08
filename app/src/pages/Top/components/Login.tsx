@@ -32,7 +32,7 @@ const Login = memo(({ isActive, setIsLoader }: LoginProps) => {
     setIsLoader(true);
     try {
       await login(email, password);
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       // エラーはストアで処理されます
     } finally {
