@@ -8,7 +8,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { useAuthStore } from "../../../features/auth/store/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LoginForm from "../../../components/Layout/LoginForm";
 import { IconLock } from "@tabler/icons-react";
 import { memo } from "react";
@@ -69,6 +69,19 @@ const Login = memo(({ isActive, setIsLoader }: LoginProps) => {
           errorMsg={error || undefined}
           onInputChange={handleInputChange}
         />
+
+        <Link
+          to="/register"
+          style={{
+            display: "block",
+            textAlign: "center",
+            marginTop: "1rem",
+            textDecoration: "none",
+            color: "#59B5F8",
+          }}
+        >
+          新規登録はこちら
+        </Link>
 
         <Text c="dimmed" size="xs" ta="center" mt="sm">
           ※ 初めての方は管理者にアカウントの発行を依頼してください

@@ -1,7 +1,7 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import Home from "../../pages/Home";
 import Top from "../../pages/Top/Top";
-import Register from "../Layout/Register";
+import Register from "../../pages/Register/Register";
 import { PrivateRoute } from "../../features/auth/components/PrivateRoute";
 import { useAuthStore } from "../../features/auth/store/auth";
 
@@ -24,11 +24,7 @@ function App() {
       />
       <Route
         path="/register"
-        element={
-          <PrivateRoute>
-            <Register />
-          </PrivateRoute>
-        }
+        element={user && token ? <Navigate to="/home" /> : <Register />}
       />
     </Routes>
   );
