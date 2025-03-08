@@ -1,6 +1,5 @@
 import { MantineProvider } from "@mantine/core";
 import { ReactNode, useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth";
 
 const Provider = ({ children }: { children: ReactNode }) => {
@@ -10,11 +9,7 @@ const Provider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, [checkAuth]);
 
-  return (
-    <MantineProvider>
-      <BrowserRouter>{children}</BrowserRouter>
-    </MantineProvider>
-  );
+  return <MantineProvider>{children}</MantineProvider>;
 };
 
 export default Provider;
