@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Group,
   Flex,
@@ -22,23 +23,27 @@ import {
   IconHelp,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
+import { NotificationModal } from "./NotificationModal";
 
 export const Header = () => {
   const { user, logout } = useAuthStore();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
   const isDark = colorScheme === "dark";
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await logout();
+    navigate("/login");
   };
 
   return (
-    <Box h="100%" px="md">
+    <Box component="header" py="md" px="xl">
+      <NotificationModal
+        opened={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
+
       <Flex justify="space-between" align="center" h="100%">
         <Group gap="xs">
           <Image w={32} h={32} src="/images/logo.png" />
@@ -55,6 +60,7 @@ export const Header = () => {
                 color="#59B5F8"
                 size="md"
                 radius="xl"
+                onClick={() => setIsNotificationModalOpen(true)}
               >
                 <IconBell size={20} />
               </ActionIcon>
@@ -101,7 +107,10 @@ export const Header = () => {
                 >
                   プロフィール
                 </Menu.Item>
-                <Menu.Item leftSection={<IconSettings size={16} />}>
+                <Menu.Item
+                  leftSection={<IconSettings size={16} />}
+                  onClick={() => navigate("/setting")}
+                >
                   設定
                 </Menu.Item>
                 <Menu.Divider />
