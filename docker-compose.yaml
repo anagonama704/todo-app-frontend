@@ -9,10 +9,14 @@ services:
       - "3000:3000"
       - "6006:6006"
       - "5173:5173"
+      - "5174:5174"
     volumes:
       - ./app:/var/www/html/app
+      - ./app/node_modules:/var/www/html/app/node_modules
     # environment:
     environment:
       - APACHE_SERVER_NAME=localhost
       - CHOKIDAR_USEPOLLING=true
+      - HOST=0.0.0.0
+    tty: true
     command: sh -c ' npm i --legacy-peer-deps && npm run dev'

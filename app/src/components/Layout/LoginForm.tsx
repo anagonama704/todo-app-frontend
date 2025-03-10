@@ -1,45 +1,75 @@
-import { Box, Center, Container, rem, Text } from "@mantine/core";
-import { ReactEventHandler } from "react";
-import TextInput from "../UI/TextInput";
-import { IconAt, IconKey } from "@tabler/icons-react";
+import {
+  Button,
+  Container,
+  PasswordInput,
+  Stack,
+  TextInput,
+} from "@mantine/core";
+import React from "react";
 import { Link } from "react-router-dom";
-import LoginButton from "../UI/LoginButton";
+import { useForm } from "@mantine/form";
+
+interface LoginFormProps {
+  loginBtnClick: (values: { email: string; password: string }) => void;
+  errorMsg?: string;
+  onInputChange?: () => void;
+}
 
 const LoginForm = ({
-  LoginFormSubmit,
-}: {
-  LoginFormSubmit: ReactEventHandler;
-}) => {
-  const EmailIcon = <IconAt style={{ width: rem(16), height: rem(16) }} />;
-  const Keyicon = <IconKey style={{ width: rem(16), height: rem(16) }} />;
-  const ClickLoginButton = () => {};
+  loginBtnClick,
+  errorMsg,
+  onInputChange,
+}: LoginFormProps) => {
+  const form = useForm({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validate: {
+      email: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "無効なメールアドレスです",
+      password: (value) =>
+        value.length < 6 ? "パスワードは6文字以上である必要があります" : null,
+    },
+  });
+
   return (
     <Container>
-      <form method="post" onSubmit={LoginFormSubmit}>
-        <TextInput
-          label="メールアドレス"
-          placeholder="メールアドレス"
-          icon={EmailIcon}
-          type="text"
-          withAsterisk
-        />
-        <TextInput
-          label="パスワード"
-          placeholder=""
-          icon={Keyicon}
-          type="password"
-          withAsterisk
-        />
-        <Center mt={10}>
-          <LoginButton label="ログイン" onClick={ClickLoginButton} />
-        </Center>
-        <Center mt={10}>
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <Text c={"#59B5F8"}>新規登録はこちら</Text>
-          </Link>
-        </Center>
+      <form onSubmit={form.onSubmit(loginBtnClick)}>
+        <Stack>
+          <TextInput
+            required
+            label="メールアドレス"
+            placeholder="your@email.com"
+            value={form.values.email}
+            onChange={(event) => {
+              form.setFieldValue("email", event.currentTarget.value);
+              onInputChange?.();
+            }}
+            error={form.errors.email}
+            radius="md"
+          />
+
+          <PasswordInput
+            required
+            label="パスワード"
+            placeholder="パスワードを入力"
+            value={form.values.password}
+            onChange={(event) => {
+              form.setFieldValue("password", event.currentTarget.value);
+              onInputChange?.();
+            }}
+            error={form.errors.password}
+            radius="md"
+          />
+
+          <Button type="submit" radius="xl" color="#59B5F8">
+            ログイン
+          </Button>
+        </Stack>
       </form>
     </Container>
   );
 };
+
 export default LoginForm;
