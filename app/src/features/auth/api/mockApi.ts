@@ -110,3 +110,14 @@ export const mockUpdateProfile = async (data: {
     updatedAt: new Date().toISOString(),
   };
 };
+
+export const mockUpdateSettings = async (settings: {
+  theme: string;
+  primaryColor: string;
+  notifications: boolean;
+  language: string;
+}) => {
+  // モックの遅延を追加
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return settings;
+};

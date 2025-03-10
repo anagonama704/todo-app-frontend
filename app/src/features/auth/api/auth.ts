@@ -7,6 +7,7 @@ import {
   mockRequestPasswordReset,
   mockResetPassword,
   mockUpdateProfile,
+  mockUpdateSettings,
 } from "./mockApi";
 import { User } from "../../../types/user";
 import { api } from "../../../lib/api";
@@ -92,5 +93,19 @@ export const updateProfile = async (data: {
     return mockUpdateProfile(data);
   }
   const response = await api.put("/auth/profile", data);
+  return response.data;
+};
+
+// 設定を保存するAPIクライアント
+export const apiUpdateSettings = async (settings: {
+  theme: string;
+  primaryColor: string;
+  notifications: boolean;
+  language: string;
+}) => {
+  if (isDevelopment) {
+    return mockUpdateSettings(settings);
+  }
+  const response = await api.put("/api/settings", settings);
   return response.data;
 };

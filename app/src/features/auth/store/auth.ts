@@ -9,6 +9,7 @@ import {
   requestPasswordReset as apiRequestPasswordReset,
   resetPassword as apiResetPassword,
   updateProfile as apiUpdateProfile,
+  apiUpdateSettings,
 } from "../api/auth";
 
 interface AuthState {
@@ -27,6 +28,12 @@ interface AuthState {
     name: string;
     displayName: string;
     email: string;
+  }) => Promise<void>;
+  updateSettings: (settings: {
+    theme: string;
+    primaryColor: string;
+    notifications: boolean;
+    language: string;
   }) => Promise<void>;
   clearError: () => void;
 }
@@ -97,6 +104,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       set({ error: "プロフィールの更新に失敗しました", isLoading: false });
+      throw error;
+    }
+  },
+
+  updateSettings: async (settings: {
+    theme: string;
+    primaryColor: string;
+    notifications: boolean;
+    language: string;
+  }) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiUpdateSettings(settings);
+      const currentUser = get().user;
+      if (!currentUser) throw new Error("ユーザーが見つかりません");
+
+      set({
+        user: {
+          ...currentUser,
+          settings: response,
+        },
+        isLoading: false,
+      });
+    } catch (error) {
+      set({ error: "設定の保存に失敗しました", isLoading: false });
       throw error;
     }
   },
