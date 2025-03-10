@@ -6,6 +6,12 @@ export interface User {
   displayName?: string;
   createdAt?: string;
   updatedAt?: string;
+  settings?: {
+    theme: string;
+    primaryColor: string;
+    notifications: boolean;
+    language: string;
+  };
 }
 
 export interface LoginCredentials {
