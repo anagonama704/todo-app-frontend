@@ -1,12 +1,12 @@
-import { Title, Paper } from "@mantine/core";
+import { Title, Container } from "@mantine/core";
 
 export const Important = () => {
   return (
-    <Paper p="md" radius="sm">
+    <Container p="md">
       <Title order={2} size="h3" mb="md">
         重要タスク
       </Title>
       {/* 重要タスクの内容をここに実装 */}
-    </Paper>
+    </Container>
   );
 };

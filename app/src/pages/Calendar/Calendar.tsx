@@ -1,12 +1,12 @@
-import { Title, Paper } from "@mantine/core";
+import { Title, Container } from "@mantine/core";
 
 export const Calendar = () => {
   return (
-    <Paper p="md" radius="sm">
+    <Container p="md">
       <Title order={2} size="h3" mb="md">
         カレンダー
       </Title>
       {/* カレンダーの内容をここに実装 */}
-    </Paper>
+    </Container>
   );
 };

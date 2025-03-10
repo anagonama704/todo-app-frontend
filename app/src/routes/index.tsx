@@ -10,9 +10,10 @@ import { Projects } from "../pages/Projects/Projects";
 import { Tags } from "../pages/Tags/Tags";
 import { Reports } from "../pages/Reports/Reports";
 import { Profile } from "../pages/Profile/Profile";
+import { Settings } from "../pages/Settings/Settings";
+import { Notifications } from "../pages/Notifications/Notifications";
 import Top from "../pages/Top/Top";
 import Register from "../pages/Register/Register";
-import { PrivateRoute } from "../features/auth/components/PrivateRoute";
 import { useAuthStore } from "../features/auth/store/auth";
 import { LoadingOverlay } from "@mantine/core";
 
@@ -84,6 +85,14 @@ export const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
+      },
+      {
+        path: "setting",
+        element: <Settings />,
+      },
+      {
+        path: "notifications",
+        element: <Notifications />,
       },
     ],
   },
