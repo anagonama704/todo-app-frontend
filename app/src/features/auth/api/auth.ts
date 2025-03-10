@@ -6,8 +6,10 @@ import {
   mockGetCurrentUser,
   mockRequestPasswordReset,
   mockResetPassword,
+  mockUpdateProfile,
 } from "./mockApi";
 import { User } from "../../../types/user";
+import { api } from "../../../lib/api";
 
 // 開発環境ではモックAPIを使用
 const isDevelopment = import.meta.env.DEV;
@@ -79,4 +81,16 @@ export const resetPassword = async (
     return mockResetPassword(token, newPassword);
   }
   throw new Error("Not implemented");
+};
+
+export const updateProfile = async (data: {
+  name: string;
+  displayName: string;
+  email: string;
+}): Promise<User> => {
+  if (isDevelopment) {
+    return mockUpdateProfile(data);
+  }
+  const response = await api.put("/auth/profile", data);
+  return response.data;
 };

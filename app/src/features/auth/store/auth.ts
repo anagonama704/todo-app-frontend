@@ -8,6 +8,7 @@ import {
   register as apiRegister,
   requestPasswordReset as apiRequestPasswordReset,
   resetPassword as apiResetPassword,
+  updateProfile as apiUpdateProfile,
 } from "../api/auth";
 
 interface AuthState {
@@ -22,6 +23,11 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  updateProfile: (data: {
+    name: string;
+    displayName: string;
+    email: string;
+  }) => Promise<void>;
   clearError: () => void;
 }
 
@@ -63,8 +69,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!response.token) {
         throw new Error("トークンが見つかりません");
       }
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("tokenExpiresAt", response.expiresAt);
+      set({
+        user: response.user,
+        token: response.token,
+        tokenExpiresAt: response.expiresAt,
+        isLoading: false,
+      });
     } catch (error) {
       set({ error: "新規登録に失敗しました", isLoading: false });
+      throw error;
+    }
+  },
+
+  updateProfile: async (data: {
+    name: string;
+    displayName: string;
+    email: string;
+  }) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiUpdateProfile(data);
+      set({
+        user: response,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({ error: "プロフィールの更新に失敗しました", isLoading: false });
       throw error;
     }
   },

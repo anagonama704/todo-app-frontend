@@ -3,6 +3,9 @@ export interface User {
   email: string;
   name: string;
   password: string;
+  displayName?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginCredentials {

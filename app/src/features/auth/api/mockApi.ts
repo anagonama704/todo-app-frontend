@@ -87,3 +87,26 @@ export const mockResetPassword = async (
 
   user.password = newPassword;
 };
+
+export const mockUpdateProfile = async (data: {
+  name: string;
+  displayName: string;
+  email: string;
+}): Promise<User> => {
+  // モックの遅延を追加
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // 現在のユーザー情報を取得
+  const currentUser = await mockGetCurrentUser(
+    localStorage.getItem("token") || ""
+  );
+
+  // 更新されたユーザー情報を返す
+  return {
+    ...currentUser,
+    name: data.name,
+    displayName: data.displayName,
+    email: data.email,
+    updatedAt: new Date().toISOString(),
+  };
+};

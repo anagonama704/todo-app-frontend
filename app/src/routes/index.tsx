@@ -9,6 +9,7 @@ import { Completed } from "../pages/Tasks/Completed";
 import { Projects } from "../pages/Projects/Projects";
 import { Tags } from "../pages/Tags/Tags";
 import { Reports } from "../pages/Reports/Reports";
+import { Profile } from "../pages/Profile/Profile";
 import Top from "../pages/Top/Top";
 import Register from "../pages/Register/Register";
 import { PrivateRoute } from "../features/auth/components/PrivateRoute";
@@ -79,6 +80,10 @@ export const router = createBrowserRouter([
       {
         path: "reports",
         element: <Reports />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },

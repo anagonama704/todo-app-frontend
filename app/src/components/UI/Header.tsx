@@ -21,10 +21,12 @@ import {
   IconMoon,
   IconHelp,
 } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const { user, logout } = useAuthStore();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const navigate = useNavigate();
   const isDark = colorScheme === "dark";
 
   const handleLogout = async () => {
@@ -93,7 +95,10 @@ export const Header = () => {
 
               <Menu.Dropdown>
                 <Menu.Label>アカウント</Menu.Label>
-                <Menu.Item leftSection={<IconUser size={16} />}>
+                <Menu.Item
+                  leftSection={<IconUser size={16} />}
+                  onClick={() => navigate("/profile")}
+                >
                   プロフィール
                 </Menu.Item>
                 <Menu.Item leftSection={<IconSettings size={16} />}>
