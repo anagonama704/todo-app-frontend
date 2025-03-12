@@ -27,13 +27,14 @@ import { NotificationModal } from "./NotificationModal";
 
 export const Header = () => {
   const { user, logout } = useAuthStore();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
   const isDark = colorScheme === "dark";
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
+    setColorScheme("light");
     navigate("/login");
   };
 
@@ -73,7 +74,7 @@ export const Header = () => {
               color="#59B5F8"
               size="md"
               radius="xl"
-              onClick={() => toggleColorScheme()}
+              onClick={() => setColorScheme(isDark ? "light" : "dark")}
             >
               {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
             </ActionIcon>

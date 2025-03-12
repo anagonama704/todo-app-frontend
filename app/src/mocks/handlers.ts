@@ -14,21 +14,6 @@ import {
   PasswordResetRequest,
 } from "../features/auth/types";
 
-// モックユーザーデータ
-const mockUsers = [
-  {
-    id: 1,
-    email: "test@example.com",
-    password: "password123",
-    name: "Test User",
-  },
-];
-
-// モックトークン生成
-const generateToken = (user: (typeof mockUsers)[0]) => {
-  return `mock-jwt-token-${user.id}`;
-};
-
 export const handlers = [
   // ログイン
   http.post<never, LoginCredentials>("/api/auth/login", async ({ request }) => {

@@ -16,6 +16,7 @@ import {
   List,
   LoadingOverlay,
   Group,
+  MantineProvider,
 } from "@mantine/core";
 import { useState } from "react";
 import { useForm } from "@mantine/form";
@@ -23,8 +24,6 @@ import { IconCheck } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "../../features/auth/store/auth";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const Register = () => {
   const [active, setActive] = useState(0);
@@ -347,70 +346,72 @@ const Register = () => {
   };
 
   return (
-    <Container size="xs">
-      <Center m={"10% 0 0 0"}>
-        <Flex w={300} justify={"space-between"} align={"center"}>
-          <Image w={80} h={80} src={"/images/logo.png"} />
-          <Titles order={1} size={45} c={"#59B5F8"}>
-            ToDoApp
+    <MantineProvider forceColorScheme="light">
+      <Container size="xs">
+        <Center m={"10% 0 0 0"}>
+          <Flex w={300} justify={"space-between"} align={"center"}>
+            <Image w={80} h={80} src={"/images/logo.png"} />
+            <Titles order={1} size={45} c={"#59B5F8"}>
+              ToDoApp
+            </Titles>
+          </Flex>
+        </Center>
+
+        <Box mt={rem(30)}>
+          <Titles order={2} size="h3" fw={900} ta="center" c="#59B5F8" mb="xl">
+            新規登録
           </Titles>
-        </Flex>
-      </Center>
 
-      <Box mt={rem(30)}>
-        <Titles order={2} size="h3" fw={900} ta="center" c="#59B5F8" mb="xl">
-          新規登録
-        </Titles>
+          <Box mb="xl">
+            <Stepper
+              active={active}
+              onStepClick={setActive}
+              size="xs"
+              iconSize={20}
+              allowNextStepsSelect={false}
+              styles={{
+                separator: {
+                  marginLeft: rem(2),
+                  marginRight: rem(2),
+                },
+                stepBody: {
+                  display: "none",
+                },
+                step: {
+                  padding: 0,
+                },
+                stepIcon: {
+                  borderWidth: rem(2),
+                },
+              }}
+            >
+              <Stepper.Step c="#59B5F8" />
+              <Stepper.Step c="#59B5F8" />
+              <Stepper.Step c="#59B5F8" />
+              <Stepper.Step c="#59B5F8" />
+              <Stepper.Step c="#59B5F8" />
+            </Stepper>
+          </Box>
 
-        <Box mb="xl">
-          <Stepper
-            active={active}
-            onStepClick={setActive}
-            size="xs"
-            iconSize={20}
-            allowNextStepsSelect={false}
-            styles={{
-              separator: {
-                marginLeft: rem(2),
-                marginRight: rem(2),
-              },
-              stepBody: {
-                display: "none",
-              },
-              step: {
-                padding: 0,
-              },
-              stepIcon: {
-                borderWidth: rem(2),
-              },
-            }}
-          >
-            <Stepper.Step c="#59B5F8" />
-            <Stepper.Step c="#59B5F8" />
-            <Stepper.Step c="#59B5F8" />
-            <Stepper.Step c="#59B5F8" />
-            <Stepper.Step c="#59B5F8" />
-          </Stepper>
+          <Paper radius="md" p="xl" withBorder pos="relative">
+            <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
+            {renderStepContent(active)}
+          </Paper>
         </Box>
-
-        <Paper radius="md" p="xl" withBorder pos="relative">
-          <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} />
-          {renderStepContent(active)}
-        </Paper>
-      </Box>
-      <Link
-        to="/"
-        style={{
-          display: "block",
-          textAlign: "center",
-          marginTop: "1rem",
-          textDecoration: "none",
-          color: "#59B5F8",
-        }}
-      >
-        ログイン画面へ戻る
-      </Link>
-    </Container>
+        <Link
+          to="/"
+          style={{
+            display: "block",
+            textAlign: "center",
+            marginTop: "1rem",
+            textDecoration: "none",
+            color: "#59B5F8",
+          }}
+        >
+          ログイン画面へ戻る
+        </Link>
+      </Container>
+    </MantineProvider>
   );
 };
 
