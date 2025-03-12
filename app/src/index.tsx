@@ -17,21 +17,11 @@ async function initApp() {
   if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_API === "true") {
     console.log("Initializing mock API...");
     try {
-      const { worker } = await import("./mocks/browser");
-      // Service Workerの登録を待機
-      await navigator.serviceWorker
-        .register("/mockServiceWorker.js", {
-          scope: "/",
-        })
-        .then(() =>
-          worker.start({
-            onUnhandledRequest: "bypass",
-            quiet: true,
-          })
-        )
-        .catch((error) => {
-          console.error("Service Worker registration failed:", error);
-        });
+      const { worker, workerConfig } = await import("./mocks/browser");
+      // MSWを直接起動
+      await worker.start(workerConfig).catch((error) => {
+        console.error("MSW initialization failed:", error);
+      });
     } catch (error) {
       console.error("Failed to initialize mock API:", error);
     }
