@@ -16,16 +16,25 @@ async function initApp() {
   // DEV環境またはVITE_USE_MOCK_APIがtrueの場合にモックAPIを有効化
   if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_API === "true") {
     console.log("Initializing mock API...");
-    const { worker } = await import("./mocks/browser");
-    await worker.start({
-      onUnhandledRequest: "bypass",
-      serviceWorker: {
-        url: "/mockServiceWorker.js",
-        options: {
+    try {
+      const { worker } = await import("./mocks/browser");
+      // Service Workerの登録を待機
+      await navigator.serviceWorker
+        .register("/mockServiceWorker.js", {
           scope: "/",
-        },
-      },
-    });
+        })
+        .then(() =>
+          worker.start({
+            onUnhandledRequest: "bypass",
+            quiet: true,
+          })
+        )
+        .catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
+    } catch (error) {
+      console.error("Failed to initialize mock API:", error);
+    }
   }
 
   const root = ReactDOM.createRoot(
