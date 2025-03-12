@@ -22,23 +22,25 @@ async function initApp() {
         throw new Error("Service Worker is not supported in this browser");
       }
 
-      const { worker, workerConfig } = await import("./mocks/browser");
-      console.log("MSW Config:", workerConfig);
-
       // 既存のService Workerを登録解除
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
         registrations.map((registration) => registration.unregister())
       );
 
+      const { worker, workerConfig } = await import("./mocks/browser");
+      console.log("MSW Config:", workerConfig);
+
+      // Service Workerを登録
+      await navigator.serviceWorker.register("/mockServiceWorker.js", {
+        scope: "/",
+        type: "module",
+      });
+
       // MSWを直接起動
       try {
         await worker.start(workerConfig);
         console.log("Mock API initialized successfully");
-
-        // Service Workerの登録状態を確認
-        const registration = await navigator.serviceWorker.ready;
-        console.log("Service Worker registration:", registration);
       } catch (error) {
         console.error("MSW initialization failed:", error);
         // エラーの詳細をログ出力

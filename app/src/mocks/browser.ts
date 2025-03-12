@@ -8,11 +8,8 @@ export const worker = setupWorker(...handlers);
 export const workerConfig = {
   onUnhandledRequest: "bypass" as const,
   quiet: false, // デバッグのためにログを有効化
-  serviceWorker: {
-    url: "/mockServiceWorker.js",
-    options: {
-      scope: "/",
-    },
+  findWorker: (scriptURL: string, mockServiceWorkerUrl: string) => {
+    return scriptURL === mockServiceWorkerUrl;
   },
 };
 
