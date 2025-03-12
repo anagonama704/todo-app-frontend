@@ -8,6 +8,8 @@ import "@mantine/core/styles.css";
 async function initializeMockServiceWorker() {
   if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_API === "true") {
     const { worker } = await import("./mocks/browser");
+    console.log(import.meta.env.VITE_USE_MOCK_API);
+    console.log(import.meta.env.VITE_API_URL);
     return worker.start({ onUnhandledRequest: "bypass" });
   }
   return Promise.resolve();
