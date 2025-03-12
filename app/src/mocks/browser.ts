@@ -7,9 +7,9 @@ export const worker = setupWorker(...handlers);
 // Service Workerの設定を提供
 export const workerConfig = {
   onUnhandledRequest: "bypass" as const,
-  quiet: true,
-  // Service Workerの設定をシンプルに
-  worker: {
+  quiet: false, // デバッグのためにログを有効化
+  serviceWorker: {
+    url: "/mockServiceWorker.js",
     options: {
       scope: "/",
     },
