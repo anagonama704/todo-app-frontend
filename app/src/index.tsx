@@ -11,8 +11,11 @@ console.log("All env vars:", import.meta.env);
 console.log("VITE_USE_MOCK_API:", import.meta.env.VITE_USE_MOCK_API);
 console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 console.log("MODE:", import.meta.env.MODE);
+
 async function initApp() {
-  if (process.env.NODE_ENV === "development") {
+  // DEV環境またはVITE_USE_MOCK_APIがtrueの場合にモックAPIを有効化
+  if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_API === "true") {
+    console.log("Initializing mock API...");
     const { worker } = await import("./mocks/browser");
     await worker.start({
       onUnhandledRequest: "bypass",
