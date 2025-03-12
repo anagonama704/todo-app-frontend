@@ -5,21 +5,14 @@ import {
   Stack,
   TextInput,
 } from "@mantine/core";
-import React from "react";
-import { Link } from "react-router-dom";
 import { useForm } from "@mantine/form";
-
 interface LoginFormProps {
   loginBtnClick: (values: { email: string; password: string }) => void;
   errorMsg?: string;
   onInputChange?: () => void;
 }
 
-const LoginForm = ({
-  loginBtnClick,
-  errorMsg,
-  onInputChange,
-}: LoginFormProps) => {
+const LoginForm = ({ loginBtnClick, onInputChange }: LoginFormProps) => {
   const form = useForm({
     initialValues: {
       email: "",

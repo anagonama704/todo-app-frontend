@@ -1,6 +1,5 @@
 import {
   Container,
-  Paper,
   Title,
   Stack,
   Text,

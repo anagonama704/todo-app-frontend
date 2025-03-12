@@ -25,8 +25,6 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "../../features/auth/store/auth";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 const Register = () => {
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
