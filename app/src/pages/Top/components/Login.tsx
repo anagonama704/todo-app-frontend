@@ -6,6 +6,7 @@ import {
   Text,
   rem,
   LoadingOverlay,
+  MantineProvider,
 } from "@mantine/core";
 import { useAuthStore } from "../../../features/auth/store/auth";
 import { Link, useNavigate } from "react-router-dom";
@@ -47,47 +48,49 @@ const Login = memo(({ isActive, setIsLoader }: LoginProps) => {
   };
 
   return (
-    <Container size="xs" mt={rem(50)}>
-      <Paper radius="md" p="xl" withBorder shadow="md" pos="relative">
-        <LoadingOverlay visible={isActive} overlayProps={{ blur: 2 }} />
-        <Center mb="lg">
-          <IconLock size={30} color="#59B5F8" stroke={1.5} />
-        </Center>
+    <MantineProvider forceColorScheme="light">
+      <Container size="xs" mt={rem(50)}>
+        <Paper radius="md" p="xl" withBorder shadow="md" pos="relative">
+          <LoadingOverlay visible={isActive} overlayProps={{ blur: 2 }} />
+          <Center mb="lg">
+            <IconLock size={30} color="#59B5F8" stroke={1.5} />
+          </Center>
 
-        <Title order={2} size="h2" fw={900} ta="center" c="#59B5F8" mb="xl">
-          ログイン
-        </Title>
+          <Title order={2} size="h2" fw={900} ta="center" c="#59B5F8" mb="xl">
+            ログイン
+          </Title>
 
-        {error && (
-          <Text c="red" size="sm" ta="center" mb="md">
-            {error}
+          {error && (
+            <Text c="red" size="sm" ta="center" mb="md">
+              {error}
+            </Text>
+          )}
+
+          <LoginForm
+            loginBtnClick={loginBtnClicked}
+            errorMsg={error || undefined}
+            onInputChange={handleInputChange}
+          />
+
+          <Link
+            to="/register"
+            style={{
+              display: "block",
+              textAlign: "center",
+              marginTop: "1rem",
+              textDecoration: "none",
+              color: "#59B5F8",
+            }}
+          >
+            新規登録はこちら
+          </Link>
+
+          <Text c="dimmed" size="xs" ta="center" mt="sm">
+            ※ 初めての方は管理者にアカウントの発行を依頼してください
           </Text>
-        )}
-
-        <LoginForm
-          loginBtnClick={loginBtnClicked}
-          errorMsg={error || undefined}
-          onInputChange={handleInputChange}
-        />
-
-        <Link
-          to="/register"
-          style={{
-            display: "block",
-            textAlign: "center",
-            marginTop: "1rem",
-            textDecoration: "none",
-            color: "#59B5F8",
-          }}
-        >
-          新規登録はこちら
-        </Link>
-
-        <Text c="dimmed" size="xs" ta="center" mt="sm">
-          ※ 初めての方は管理者にアカウントの発行を依頼してください
-        </Text>
-      </Paper>
-    </Container>
+        </Paper>
+      </Container>
+    </MantineProvider>
   );
 });
 
