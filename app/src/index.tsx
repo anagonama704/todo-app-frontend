@@ -19,11 +19,22 @@ async function initApp() {
     try {
       const { worker, workerConfig } = await import("./mocks/browser");
       // MSWを直接起動
-      await worker.start(workerConfig).catch((error) => {
+      try {
+        await worker.start(workerConfig);
+        console.log("Mock API initialized successfully");
+      } catch (error) {
         console.error("MSW initialization failed:", error);
-      });
+        // エラーの詳細をログ出力
+        if (error instanceof Error) {
+          console.error("Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          });
+        }
+      }
     } catch (error) {
-      console.error("Failed to initialize mock API:", error);
+      console.error("Failed to import mock API:", error);
     }
   }
 

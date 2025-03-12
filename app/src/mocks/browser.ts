@@ -14,8 +14,11 @@ export const worker = setupWorker(...handlers);
 export const workerConfig = {
   onUnhandledRequest: "bypass" as const,
   quiet: true,
-  serviceWorker: {
-    url: getWorkerUrl(),
+  // Service Workerの設定をシンプルに
+  worker: {
+    options: {
+      scope: "/",
+    },
   },
 };
 
