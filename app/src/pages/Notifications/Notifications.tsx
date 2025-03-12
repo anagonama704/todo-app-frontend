@@ -7,7 +7,6 @@ import {
   Group,
   Badge,
   Divider,
-  Button,
   Pagination,
 } from "@mantine/core";
 import { IconBell } from "@tabler/icons-react";

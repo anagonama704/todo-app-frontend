@@ -9,7 +9,7 @@ import {
   Paper,
 } from "@mantine/core";
 import { IconBell } from "@tabler/icons-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationModalProps {
   opened: boolean;
