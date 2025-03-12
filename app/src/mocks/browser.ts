@@ -3,15 +3,8 @@ import { handlers } from "./handlers";
 
 // 環境に応じたService Worker URLを設定
 const getWorkerUrl = () => {
-  if (import.meta.env.DEV) {
-    return "/mockServiceWorker.js";
-  }
-  // Vercel環境の場合
-  if (import.meta.env.VITE_USE_MOCK_API === "true") {
-    return `https://${import.meta.env.VITE_VERCEL_URL}/mockServiceWorker.js`;
-  }
-  // デフォルトはオリジンからの相対パス
-  return `${window.location.origin}/mockServiceWorker.js`;
+  // 常に現在のオリジンからの相対パスを使用
+  return "/mockServiceWorker.js";
 };
 
 // workerの設定
