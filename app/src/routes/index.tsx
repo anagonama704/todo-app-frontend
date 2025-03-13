@@ -12,6 +12,7 @@ import { Reports } from "../pages/Reports/Reports";
 import { Profile } from "../pages/Profile/Profile";
 import { Settings } from "../pages/Settings/Settings";
 import { Notifications } from "../pages/Notifications/Notifications";
+import { Help } from "../pages/Help/Help";
 import Top from "../pages/Top/Top";
 import Register from "../pages/Register/Register";
 import { useAuthStore } from "../features/auth/store/auth";
@@ -93,6 +94,10 @@ export const router = createBrowserRouter([
       {
         path: "notifications",
         element: <Notifications />,
+      },
+      {
+        path: "help",
+        element: <Help />,
       },
     ],
   },
