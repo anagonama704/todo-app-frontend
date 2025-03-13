@@ -81,7 +81,13 @@ export const Header = () => {
           </Tooltip>
 
           <Tooltip label="ヘルプ">
-            <ActionIcon variant="subtle" color="#59B5F8" size="md" radius="xl">
+            <ActionIcon
+              variant="subtle"
+              color="#59B5F8"
+              size="md"
+              radius="xl"
+              onClick={() => navigate("/help")}
+            >
               <IconHelp size={20} />
             </ActionIcon>
           </Tooltip>
