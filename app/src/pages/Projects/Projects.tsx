@@ -27,6 +27,7 @@ import {
   IconSearch,
   IconFolder,
   IconArrowRight,
+  IconDots,
 } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
 import {
@@ -120,7 +121,7 @@ export function Projects() {
           </Button>
         </Group>
 
-        <Group>
+        <Group align="flex-end">
           <TextInput
             placeholder="プロジェクトを検索..."
             leftSection={<IconSearch size={16} />}
@@ -214,7 +215,7 @@ export function Projects() {
                               color="gray"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <IconDotsVertical size={16} />
+                              <IconDots size={16} />
                             </ActionIcon>
                           </Menu.Target>
                           <Menu.Dropdown>
