@@ -6,12 +6,55 @@ import reportWebVitals from "./reportWebVitals";
 import "@mantine/core/styles.css";
 import Provider from "./components/providers/Provider";
 
+// 全ての環境変数をログ出力
+console.log("All env vars:", import.meta.env);
+console.log("VITE_USE_MOCK_API:", import.meta.env.VITE_USE_MOCK_API);
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+console.log("MODE:", import.meta.env.MODE);
+
 async function initApp() {
-  if (process.env.NODE_ENV === "development") {
-    const { worker } = await import("./mocks/browser");
-    await worker.start({
-      onUnhandledRequest: "bypass",
-    });
+  // DEV環境またはVITE_USE_MOCK_APIがtrueの場合にモックAPIを有効化
+  if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_API === "true") {
+    console.log("Initializing mock API...");
+    try {
+      // Service Workerのサポートチェック
+      if (!("serviceWorker" in navigator)) {
+        throw new Error("Service Worker is not supported in this browser");
+      }
+
+      // 既存のService Workerを登録解除
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(
+        registrations.map((registration) => registration.unregister())
+      );
+
+      const { worker, workerConfig } = await import("./mocks/browser");
+      console.log("MSW Config:", workerConfig);
+
+      // Service Workerを登録
+      await navigator.serviceWorker.register("/mockServiceWorker.js", {
+        scope: "/",
+        type: "module",
+      });
+
+      // MSWを直接起動
+      try {
+        await worker.start(workerConfig);
+        console.log("Mock API initialized successfully");
+      } catch (error) {
+        console.error("MSW initialization failed:", error);
+        // エラーの詳細をログ出力
+        if (error instanceof Error) {
+          console.error("Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to import mock API:", error);
+    }
   }
 
   const root = ReactDOM.createRoot(

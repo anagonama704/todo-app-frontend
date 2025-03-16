@@ -12,10 +12,13 @@ import { Reports } from "../pages/Reports/Reports";
 import { Profile } from "../pages/Profile/Profile";
 import { Settings } from "../pages/Settings/Settings";
 import { Notifications } from "../pages/Notifications/Notifications";
+import { Help } from "../pages/Help/Help";
 import Top from "../pages/Top/Top";
 import Register from "../pages/Register/Register";
 import { useAuthStore } from "../features/auth/store/auth";
 import { LoadingOverlay } from "@mantine/core";
+import { NewProject } from "../pages/Projects/NewProject";
+import ProjectDetail from "../pages/Projects/ProjectDetail";
 
 const AuthWrapper = () => {
   const { user, token, isLoading } = useAuthStore();
@@ -75,6 +78,14 @@ export const router = createBrowserRouter([
         element: <Projects />,
       },
       {
+        path: "projects/:id",
+        element: <ProjectDetail />,
+      },
+      {
+        path: "projects/new",
+        element: <NewProject />,
+      },
+      {
         path: "tags",
         element: <Tags />,
       },
@@ -93,6 +104,10 @@ export const router = createBrowserRouter([
       {
         path: "notifications",
         element: <Notifications />,
+      },
+      {
+        path: "help",
+        element: <Help />,
       },
     ],
   },

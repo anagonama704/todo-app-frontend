@@ -34,6 +34,11 @@ export const Sidebar = () => {
       path: "/dashboard",
     },
     {
+      label: "プロジェクト一覧",
+      icon: <IconFolder size={20} />,
+      path: "/projects",
+    },
+    {
       label: "カレンダー",
       icon: <IconCalendar size={20} />,
       path: "/calendar",
@@ -64,11 +69,6 @@ export const Sidebar = () => {
   ];
 
   const organizationMenuItems = [
-    {
-      label: "プロジェクト",
-      icon: <IconFolder size={20} />,
-      path: "/projects",
-    },
     { label: "タグ", icon: <IconTags size={20} />, path: "/tags" },
     { label: "レポート", icon: <IconChartBar size={20} />, path: "/reports" },
   ];
