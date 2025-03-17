@@ -54,6 +54,30 @@ const ProjectDetail = () => {
   const [activeTab, setActiveTab] = useState<string | null>("details");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [projectProgress, setProjectProgress] = useState<number>(0);
+
+  // プロジェクトのタスク完了率を計算
+  const calculateProjectProgress = () => {
+    if (!id) return 0;
+
+    const tasks = getTasksByProjectId(id);
+    if (tasks.length === 0) return 0;
+
+    const completedTasks = tasks.filter(
+      (task) => task.status === TaskStatus.DONE
+    ).length;
+    const progressPercentage = Math.round(
+      (completedTasks / tasks.length) * 100
+    );
+
+    return progressPercentage;
+  };
+
+  // コンポーネントマウント時とタスク選択時に進捗状況を更新
+  useEffect(() => {
+    const progress = calculateProjectProgress();
+    setProjectProgress(progress);
+  }, [id, selectedTask]);
 
   if (!project || !id) {
     return (
@@ -161,12 +185,12 @@ const ProjectDetail = () => {
                 進捗状況
               </Text>
               <Text size="sm" fw={500}>
-                {project.progress}%
+                {projectProgress}%
               </Text>
             </Group>
             <Progress
-              value={project.progress}
-              color={project.progress === 100 ? "green" : "blue"}
+              value={projectProgress}
+              color={projectProgress === 100 ? "green" : "blue"}
               size="xl"
               radius="xl"
             />
@@ -271,6 +295,12 @@ const ProjectDetail = () => {
       // 変更を保存
       try {
         updateTask(updatedTask);
+
+        // タスクのステータスが変更された場合は進捗状況を更新
+        if (field === "status") {
+          const progress = calculateProjectProgress();
+          setProjectProgress(progress);
+        }
       } catch (error) {
         console.error("タスクの更新に失敗しました", error);
       }
@@ -306,6 +336,12 @@ const ProjectDetail = () => {
                   handleTaskChange("description", e.target.value)
                 }
                 placeholder="説明を入力"
+                styles={(theme) => ({
+                  input: {
+                    borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                    paddingLeft: theme.spacing.sm,
+                  },
+                })}
               />
             </div>
 
@@ -329,6 +365,20 @@ const ProjectDetail = () => {
                         { value: TaskStatus.DONE, label: "完了" },
                       ]}
                       allowDeselect={false}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${
+                            editedTask.status === TaskStatus.TODO
+                              ? theme.colors.gray[5]
+                              : editedTask.status === TaskStatus.IN_PROGRESS
+                                ? theme.colors.blue[5]
+                                : editedTask.status === TaskStatus.IN_REVIEW
+                                  ? theme.colors.yellow[5]
+                                  : theme.colors.green[5]
+                          }`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
                     />
                   </div>
 
@@ -345,6 +395,18 @@ const ProjectDetail = () => {
                         { value: Priority.LOW, label: "低" },
                       ]}
                       allowDeselect={false}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${
+                            editedTask.priority === Priority.HIGH
+                              ? theme.colors.red[5]
+                              : editedTask.priority === Priority.MEDIUM
+                                ? theme.colors.yellow[5]
+                                : theme.colors.green[5]
+                          }`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
                     />
                   </div>
 
@@ -363,6 +425,12 @@ const ProjectDetail = () => {
                         }
                         size="sm"
                         style={{ flex: 1 }}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
                       />
                     </Group>
                   </div>
@@ -375,29 +443,30 @@ const ProjectDetail = () => {
                     <Text size="sm" c="dimmed" mb={4}>
                       期限
                     </Text>
-                    <Group gap="xs">
-                      <IconCalendar size={14} style={{ color: "gray" }} />
-                      <TextInput
-                        type="date"
-                        value={
-                          editedTask.dueDate
-                            ? new Date(editedTask.dueDate)
-                                .toISOString()
-                                .split("T")[0]
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleTaskChange(
-                            "dueDate",
-                            e.target.value
-                              ? new Date(e.target.value).toISOString()
-                              : null
-                          )
-                        }
-                        size="sm"
-                        style={{ flex: 1 }}
-                      />
-                    </Group>
+                    <TextInput
+                      type="date"
+                      value={
+                        editedTask.dueDate
+                          ? new Date(editedTask.dueDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) =>
+                        handleTaskChange(
+                          "dueDate",
+                          e.target.value
+                            ? new Date(e.target.value).toISOString()
+                            : null
+                        )
+                      }
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
                   </div>
 
                   <div>
@@ -405,7 +474,6 @@ const ProjectDetail = () => {
                       開始日
                     </Text>
                     <Group gap="xs">
-                      <IconCalendar size={14} style={{ color: "gray" }} />
                       <TextInput
                         type="date"
                         value={
@@ -425,48 +493,54 @@ const ProjectDetail = () => {
                         }
                         size="sm"
                         style={{ flex: 1 }}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.indigo[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
                       />
                     </Group>
                   </div>
 
                   <div>
                     <Text size="sm" c="dimmed" mb={4}>
-                      作業時間
+                      見積時間（時間）
                     </Text>
-                    <Group gap="md">
-                      <div>
-                        <Text size="xs" c="dimmed">
-                          見積
-                        </Text>
-                        <NumberInput
-                          value={editedTask.estimatedHours || 0}
-                          onChange={(value) =>
-                            handleTaskChange("estimatedHours", value)
-                          }
-                          min={0}
-                          step={0.5}
-                          size="sm"
-                          suffix="時間"
-                          style={{ width: 100 }}
-                        />
-                      </div>
-                      <div>
-                        <Text size="xs" c="dimmed">
-                          実績
-                        </Text>
-                        <NumberInput
-                          value={editedTask.actualHours || 0}
-                          onChange={(value) =>
-                            handleTaskChange("actualHours", value)
-                          }
-                          min={0}
-                          step={0.5}
-                          size="sm"
-                          suffix="時間"
-                          style={{ width: 100 }}
-                        />
-                      </div>
-                    </Group>
+                    <NumberInput
+                      value={editedTask.estimatedHours || 0}
+                      onChange={(value) =>
+                        handleTaskChange("estimatedHours", value)
+                      }
+                      min={0}
+                      step={0.5}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.cyan[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      実績時間（時間）
+                    </Text>
+                    <NumberInput
+                      value={editedTask.actualHours || 0}
+                      onChange={(value) =>
+                        handleTaskChange("actualHours", value)
+                      }
+                      min={0}
+                      step={0.5}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.teal[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
                   </div>
                 </Stack>
               </Grid.Col>
@@ -480,17 +554,23 @@ const ProjectDetail = () => {
                 タグ
               </Text>
               <TextInput
-                value={editedTask.tags.join(", ")}
+                value={editedTask.tags?.join(", ") || ""}
                 onChange={(e) =>
                   handleTaskChange(
                     "tags",
                     e.target.value
                       .split(",")
                       .map((tag) => tag.trim())
-                      .filter((tag) => tag)
+                      .filter((tag) => tag !== "")
                   )
                 }
                 placeholder="カンマ区切りでタグを入力"
+                styles={(theme) => ({
+                  input: {
+                    borderLeft: `4px solid ${theme.colors.orange[5]}`,
+                    paddingLeft: theme.spacing.sm,
+                  },
+                })}
               />
             </div>
           </Stack>
