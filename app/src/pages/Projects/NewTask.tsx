@@ -42,9 +42,7 @@ const NewTask = () => {
     tags: [],
   });
 
-  const [availableTags, setAvailableTags] = useState<string[]>(
-    project?.tags || []
-  );
+  const [availableTags] = useState<string[]>(project?.tags || []);
 
   if (!project || !projectId) {
     return (
@@ -87,12 +85,6 @@ const NewTask = () => {
         color: "red",
       });
     }
-  };
-
-  const handleTagCreate = (query: string) => {
-    const newTag = query.trim();
-    setAvailableTags((prev) => [...prev, newTag]);
-    return newTag;
   };
 
   return (

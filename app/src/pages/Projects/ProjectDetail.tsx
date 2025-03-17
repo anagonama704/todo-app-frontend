@@ -13,7 +13,6 @@ import {
   Button,
   Grid,
   Avatar,
-  List,
   ThemeIcon,
   Tabs,
   Table,
