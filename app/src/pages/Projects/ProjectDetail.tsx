@@ -16,12 +16,17 @@ import {
   List,
   ThemeIcon,
   Tabs,
+  Table,
+  Select,
+  Modal,
+  Divider,
+  TextInput,
+  NumberInput,
 } from "@mantine/core";
 import {
   IconEdit,
   IconTrash,
   IconCalendar,
-  IconFlag,
   IconUsers,
   IconTag,
   IconCheck,
@@ -30,9 +35,17 @@ import {
   IconInfoCircle,
   IconList,
   IconChartBar,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  Task,
+  TaskStatus,
+  Priority,
+  getTasksByProjectId,
+  updateTask,
+} from "../../features/tasks/mocks/tasks";
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -40,6 +53,41 @@ const ProjectDetail = () => {
   const { projects, deleteProject } = useProjectsStore();
   const project = projects.find((project) => project.id === id);
   const [activeTab, setActiveTab] = useState<string | null>("details");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [projectProgress, setProjectProgress] = useState<number>(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editedTask, setEditedTask] = useState<Task | null>(null);
+
+  // プロジェクトのタスク完了率を計算
+  const calculateProjectProgress = () => {
+    if (!id) return 0;
+
+    const tasks = getTasksByProjectId(id);
+    if (tasks.length === 0) return 0;
+
+    const completedTasks = tasks.filter(
+      (task) => task.status === TaskStatus.DONE
+    ).length;
+    const progressPercentage = Math.round(
+      (completedTasks / tasks.length) * 100
+    );
+
+    return progressPercentage;
+  };
+
+  // コンポーネントマウント時とタスク選択時に進捗状況を更新
+  useEffect(() => {
+    const progress = calculateProjectProgress();
+    setProjectProgress(progress);
+  }, [id, selectedTask]);
+
+  // selectedTaskが変更されたらeditedTaskも更新
+  useEffect(() => {
+    if (selectedTask) {
+      setEditedTask({ ...selectedTask });
+    }
+  }, [selectedTask]);
 
   if (!project || !id) {
     return (
@@ -50,24 +98,42 @@ const ProjectDetail = () => {
   }
 
   const handleDelete = async () => {
-    if (window.confirm("このプロジェクトを削除してもよろしいですか？")) {
-      try {
-        await deleteProject(id);
-        notifications.show({
-          title: "プロジェクトを削除しました",
-          message: "プロジェクトが正常に削除されました",
-          color: "green",
-          icon: <IconCheck size={16} />,
-        });
-        navigate("/projects");
-      } catch (error) {
-        notifications.show({
-          title: "エラーが発生しました",
-          message: "プロジェクトの削除に失敗しました",
-          color: "red",
-          icon: <IconX size={16} />,
-        });
+    try {
+      await deleteProject(id);
+      notifications.show({
+        title: "プロジェクトを削除しました",
+        message: "プロジェクトが正常に削除されました",
+        color: "green",
+        icon: <IconCheck size={16} />,
+      });
+      navigate("/projects");
+    } catch (error) {
+      notifications.show({
+        title: "エラーが発生しました",
+        message: "プロジェクトの削除に失敗しました",
+        color: "red",
+        icon: <IconX size={16} />,
+      });
+    }
+  };
+
+  const handleTaskChange = (field: string, value: any) => {
+    if (!editedTask) return;
+
+    const updatedTask = { ...editedTask, [field]: value };
+    setEditedTask(updatedTask);
+
+    // 変更を保存
+    try {
+      updateTask(updatedTask);
+
+      // タスクのステータスが変更された場合は進捗状況を更新
+      if (field === "status") {
+        const progress = calculateProjectProgress();
+        setProjectProgress(progress);
       }
+    } catch (error) {
+      console.error("タスクの更新に失敗しました", error);
     }
   };
 
@@ -147,12 +213,12 @@ const ProjectDetail = () => {
                 進捗状況
               </Text>
               <Text size="sm" fw={500}>
-                {project.progress}%
+                {projectProgress}%
               </Text>
             </Group>
             <Progress
-              value={project.progress}
-              color={project.progress === 100 ? "green" : "blue"}
+              value={projectProgress}
+              color={projectProgress === 100 ? "green" : "blue"}
               size="xl"
               radius="xl"
             />
@@ -238,72 +304,453 @@ const ProjectDetail = () => {
     </Grid>
   );
 
-  const renderTaskList = () => (
-    <Card withBorder>
-      <Group justify="space-between" mb="md">
-        <Text size="sm" fw={500}>
-          タスク一覧
-        </Text>
-        <Button
-          variant="light"
-          size="xs"
-          onClick={() => navigate(`/projects/${id}/tasks/new`)}
-        >
-          タスクを追加
-        </Button>
-      </Group>
-      {project.tasks.length > 0 ? (
-        <List spacing="xs" size="sm" center>
-          {project.tasks.map((task) => (
-            <List.Item
-              key={task.id}
-              icon={
-                <ThemeIcon
-                  color={task.completedAt ? "green" : "blue"}
-                  size={24}
-                  radius="xl"
-                >
-                  {task.completedAt ? (
-                    <IconCheck size={16} />
-                  ) : (
-                    <IconClock size={16} />
-                  )}
-                </ThemeIcon>
-              }
-            >
-              <Group justify="space-between" w="100%">
-                <Stack gap={0}>
-                  <Text>{task.title}</Text>
-                  {task.description && (
-                    <Text size="xs" c="dimmed">
-                      {task.description}
+  const renderTaskModal = () => {
+    return (
+      <Modal
+        opened={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        title={
+          editedTask && (
+            <TextInput
+              value={editedTask.title}
+              onChange={(e) => handleTaskChange("title", e.target.value)}
+              variant="unstyled"
+              size="lg"
+              style={{ fontWeight: 500 }}
+            />
+          )
+        }
+        size="lg"
+      >
+        {editedTask && (
+          <Stack gap="md">
+            {/* タスクの説明 */}
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">
+                説明
+              </Text>
+              <TextInput
+                value={editedTask.description || ""}
+                onChange={(e) =>
+                  handleTaskChange("description", e.target.value)
+                }
+                placeholder="説明を入力"
+                styles={(theme) => ({
+                  input: {
+                    borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                    paddingLeft: theme.spacing.sm,
+                  },
+                })}
+              />
+            </div>
+
+            <Divider />
+
+            {/* タスクのメタ情報 */}
+            <Grid>
+              <Grid.Col span={6}>
+                <Stack gap="sm">
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      ステータス
                     </Text>
-                  )}
+                    <Select
+                      value={editedTask.status}
+                      onChange={(value) => handleTaskChange("status", value)}
+                      data={[
+                        { value: TaskStatus.TODO, label: "未着手" },
+                        { value: TaskStatus.IN_PROGRESS, label: "進行中" },
+                        { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
+                        { value: TaskStatus.DONE, label: "完了" },
+                      ]}
+                      allowDeselect={false}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${
+                            editedTask.status === TaskStatus.TODO
+                              ? theme.colors.gray[5]
+                              : editedTask.status === TaskStatus.IN_PROGRESS
+                                ? theme.colors.blue[5]
+                                : editedTask.status === TaskStatus.IN_REVIEW
+                                  ? theme.colors.yellow[5]
+                                  : theme.colors.green[5]
+                          }`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      優先度
+                    </Text>
+                    <Select
+                      value={editedTask.priority}
+                      onChange={(value) => handleTaskChange("priority", value)}
+                      data={[
+                        { value: Priority.HIGH, label: "高" },
+                        { value: Priority.MEDIUM, label: "中" },
+                        { value: Priority.LOW, label: "低" },
+                      ]}
+                      allowDeselect={false}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${
+                            editedTask.priority === Priority.HIGH
+                              ? theme.colors.red[5]
+                              : editedTask.priority === Priority.MEDIUM
+                                ? theme.colors.yellow[5]
+                                : theme.colors.green[5]
+                          }`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      担当者
+                    </Text>
+                    <Group gap="xs">
+                      <Avatar size="sm" radius="xl">
+                        {editedTask.assigneeId[0]}
+                      </Avatar>
+                      <TextInput
+                        value={editedTask.assigneeId}
+                        onChange={(e) =>
+                          handleTaskChange("assigneeId", e.target.value)
+                        }
+                        size="sm"
+                        style={{ flex: 1 }}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </Group>
+                  </div>
                 </Stack>
-                <Group gap="xs">
-                  <Badge
-                    color={getPriorityColor(task.priority)}
-                    variant="light"
-                  >
-                    {getPriorityLabel(task.priority)}
-                  </Badge>
-                  {task.dueDate && (
-                    <Text size="xs" c="dimmed">
-                      期限: {new Date(task.dueDate).toLocaleDateString("ja-JP")}
+              </Grid.Col>
+
+              <Grid.Col span={6}>
+                <Stack gap="sm">
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      期限
                     </Text>
-                  )}
-                </Group>
-              </Group>
-            </List.Item>
-          ))}
-        </List>
-      ) : (
-        <Text c="dimmed" ta="center">
-          タスクはまだありません
-        </Text>
-      )}
-    </Card>
-  );
+                    <TextInput
+                      type="date"
+                      value={
+                        editedTask.dueDate
+                          ? new Date(editedTask.dueDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) =>
+                        handleTaskChange(
+                          "dueDate",
+                          e.target.value
+                            ? new Date(e.target.value).toISOString()
+                            : null
+                        )
+                      }
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      開始日
+                    </Text>
+                    <Group gap="xs">
+                      <TextInput
+                        type="date"
+                        value={
+                          editedTask.startDate
+                            ? new Date(editedTask.startDate)
+                                .toISOString()
+                                .split("T")[0]
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleTaskChange(
+                            "startDate",
+                            e.target.value
+                              ? new Date(e.target.value).toISOString()
+                              : null
+                          )
+                        }
+                        size="sm"
+                        style={{ flex: 1 }}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.indigo[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </Group>
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      見積時間（時間）
+                    </Text>
+                    <NumberInput
+                      value={editedTask.estimatedHours || 0}
+                      onChange={(value) =>
+                        handleTaskChange("estimatedHours", value)
+                      }
+                      min={0}
+                      step={0.5}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.cyan[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+
+                  <div>
+                    <Text size="sm" c="dimmed" mb={4}>
+                      実績時間（時間）
+                    </Text>
+                    <NumberInput
+                      value={editedTask.actualHours || 0}
+                      onChange={(value) =>
+                        handleTaskChange("actualHours", value)
+                      }
+                      min={0}
+                      step={0.5}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.teal[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </div>
+                </Stack>
+              </Grid.Col>
+            </Grid>
+
+            <Divider />
+
+            {/* タグ */}
+            <div>
+              <Text size="sm" c="dimmed" mb={4}>
+                タグ
+              </Text>
+              <TextInput
+                value={editedTask.tags?.join(", ") || ""}
+                onChange={(e) =>
+                  handleTaskChange(
+                    "tags",
+                    e.target.value
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag !== "")
+                  )
+                }
+                placeholder="カンマ区切りでタグを入力"
+                styles={(theme) => ({
+                  input: {
+                    borderLeft: `4px solid ${theme.colors.orange[5]}`,
+                    paddingLeft: theme.spacing.sm,
+                  },
+                })}
+              />
+            </div>
+          </Stack>
+        )}
+      </Modal>
+    );
+  };
+
+  const renderTaskList = () => {
+    const tasks = getTasksByProjectId(id);
+    console.log("Current Project ID:", id);
+    console.log("Tasks:", tasks);
+
+    // ステータスでフィルタリング
+    const filteredTasks =
+      statusFilter === "all"
+        ? tasks
+        : tasks.filter((task) => task.status === statusFilter);
+
+    return (
+      <Card withBorder>
+        <Group justify="space-between" mb="md">
+          <Group>
+            <IconList size={20} style={{ color: "gray" }} />
+            <Text fw={500}>タスク一覧</Text>
+          </Group>
+          <Group>
+            <Select
+              size="xs"
+              placeholder="ステータスでフィルター"
+              data={[
+                { value: "all", label: "すべて" },
+                { value: TaskStatus.TODO, label: "未着手" },
+                { value: TaskStatus.IN_PROGRESS, label: "進行中" },
+                { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
+                { value: TaskStatus.DONE, label: "完了" },
+              ]}
+              value={statusFilter}
+              onChange={(value) => value && setStatusFilter(value)}
+              allowDeselect={false}
+            />
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<IconEdit size={14} />}
+              onClick={() => navigate(`/projects/${id}/tasks/new`)}
+            >
+              タスクを追加
+            </Button>
+          </Group>
+        </Group>
+
+        {filteredTasks.length === 0 ? (
+          <Card
+            withBorder
+            p="xl"
+            style={{ backgroundColor: "var(--mantine-color-gray-0)" }}
+          >
+            <Stack align="center" gap="md">
+              <IconList
+                size={40}
+                style={{ color: "var(--mantine-color-gray-5)" }}
+              />
+              <Text c="dimmed" ta="center">
+                タスクはまだありません。
+                <br />
+                「タスクを追加」ボタンから新しいタスクを作成できます。
+              </Text>
+              <Button
+                variant="light"
+                size="xs"
+                leftSection={<IconEdit size={14} />}
+                onClick={() => navigate(`/projects/${id}/tasks/new`)}
+              >
+                タスクを追加
+              </Button>
+            </Stack>
+          </Card>
+        ) : (
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>タイトル</Table.Th>
+                <Table.Th>ステータス</Table.Th>
+                <Table.Th>優先度</Table.Th>
+                <Table.Th>担当者</Table.Th>
+                <Table.Th>期限</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {filteredTasks.map((task) => (
+                <Table.Tr
+                  key={task.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedTask(task)}
+                >
+                  <Table.Td>
+                    <Group gap="xs">
+                      <Text size="sm" fw={500}>
+                        {task.title}
+                      </Text>
+                      {task.tags.length > 0 && (
+                        <Group gap={4}>
+                          {task.tags.map((tag) => (
+                            <Badge key={tag} size="xs" variant="light">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </Group>
+                      )}
+                    </Group>
+                    {task.description && (
+                      <Text size="xs" c="dimmed" lineClamp={1}>
+                        {task.description}
+                      </Text>
+                    )}
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={
+                        task.status === TaskStatus.DONE
+                          ? "green"
+                          : task.status === TaskStatus.IN_PROGRESS
+                            ? "blue"
+                            : task.status === TaskStatus.IN_REVIEW
+                              ? "yellow"
+                              : "gray"
+                      }
+                    >
+                      {task.status === TaskStatus.DONE
+                        ? "完了"
+                        : task.status === TaskStatus.IN_PROGRESS
+                          ? "進行中"
+                          : task.status === TaskStatus.IN_REVIEW
+                            ? "レビュー中"
+                            : "未着手"}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={
+                        task.priority === Priority.HIGH
+                          ? "red"
+                          : task.priority === Priority.MEDIUM
+                            ? "yellow"
+                            : "green"
+                      }
+                    >
+                      {task.priority === Priority.HIGH
+                        ? "高"
+                        : task.priority === Priority.MEDIUM
+                          ? "中"
+                          : "低"}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <Avatar size="sm" radius="xl">
+                        {task.assigneeId[0]}
+                      </Avatar>
+                      <Text size="sm">{task.assigneeId}</Text>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <IconCalendar size={14} style={{ color: "gray" }} />
+                      <Text size="sm">
+                        {task.dueDate
+                          ? new Date(task.dueDate).toLocaleDateString("ja-JP")
+                          : "-"}
+                      </Text>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        )}
+      </Card>
+    );
+  };
 
   const renderGanttChart = () => (
     <Card withBorder p="md">
@@ -331,7 +778,7 @@ const ProjectDetail = () => {
           </Stack>
           <Group>
             <Button
-              variant="light"
+              variant="outline"
               leftSection={<IconEdit size={16} />}
               onClick={() => navigate(`/projects/${id}/edit`)}
             >
@@ -341,7 +788,7 @@ const ProjectDetail = () => {
               variant="light"
               color="red"
               size="lg"
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
             >
               <IconTrash size={16} />
             </ActionIcon>
@@ -378,6 +825,46 @@ const ProjectDetail = () => {
           </Tabs.Panel>
         </Tabs>
       </Stack>
+      {renderTaskModal()}
+
+      {/* 削除確認モーダル */}
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="プロジェクトの削除"
+        centered
+        size="md"
+      >
+        <Stack gap="md">
+          <Group gap="xs">
+            <ThemeIcon color="red" size="lg" radius="xl">
+              <IconAlertTriangle size={20} />
+            </ThemeIcon>
+            <Text fw={500} size="lg">
+              このプロジェクトを削除しますか？
+            </Text>
+          </Group>
+
+          <Text color="dimmed">
+            この操作は取り消せません。プロジェクト「{project.title}
+            」とそれに関連するすべてのタスクが完全に削除されます。
+          </Text>
+
+          <Divider my="sm" />
+
+          <Group justify="right" gap="sm">
+            <Button
+              variant="default"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button color="red" onClick={handleDelete}>
+              削除する
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 };

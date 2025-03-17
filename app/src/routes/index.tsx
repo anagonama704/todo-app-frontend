@@ -19,6 +19,8 @@ import { useAuthStore } from "../features/auth/store/auth";
 import { LoadingOverlay } from "@mantine/core";
 import { NewProject } from "../pages/Projects/NewProject";
 import ProjectDetail from "../pages/Projects/ProjectDetail";
+import NewTask from "../pages/Projects/NewTask";
+import { EditProject } from "../pages/Projects/EditProject";
 
 const AuthWrapper = () => {
   const { user, token, isLoading } = useAuthStore();
@@ -84,6 +86,14 @@ export const router = createBrowserRouter([
       {
         path: "projects/new",
         element: <NewProject />,
+      },
+      {
+        path: "projects/:id/edit",
+        element: <EditProject />,
+      },
+      {
+        path: "projects/:id/tasks/new",
+        element: <NewTask />,
       },
       {
         path: "tags",
