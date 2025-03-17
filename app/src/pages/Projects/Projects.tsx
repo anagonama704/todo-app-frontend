@@ -21,7 +21,6 @@ import {
   Transition,
 } from "@mantine/core";
 import {
-  IconDotsVertical,
   IconEdit,
   IconTrash,
   IconSearch,

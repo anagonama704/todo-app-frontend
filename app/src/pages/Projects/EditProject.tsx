@@ -13,18 +13,12 @@ import {
   Card,
   MultiSelect,
   Grid,
-  Badge,
-  Avatar,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { IconCheck, IconArrowLeft } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
-import {
-  UpdateProjectInput,
-  ProjectStatus,
-  ProjectPriority,
-} from "../../features/projects/types/project";
+import { UpdateProjectInput } from "../../features/projects/types/project";
 import "@mantine/dates/styles.css";
 
 export function EditProject() {
@@ -91,34 +85,6 @@ export function EditProject() {
         message: "プロジェクトの更新に失敗しました",
         color: "red",
       });
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "planning":
-        return "計画中";
-      case "in_progress":
-        return "進行中";
-      case "completed":
-        return "完了";
-      case "archived":
-        return "アーカイブ";
-      default:
-        return status;
-    }
-  };
-
-  const getPriorityLabel = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "高";
-      case "medium":
-        return "中";
-      case "low":
-        return "低";
-      default:
-        return priority;
     }
   };
 

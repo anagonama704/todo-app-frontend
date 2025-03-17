@@ -15,7 +15,7 @@ interface ProjectsState {
   deleteProject: (id: string) => Promise<void>;
 }
 
-export const useProjectsStore = create<ProjectsState>((set, get) => ({
+export const useProjectsStore = create<ProjectsState>((set) => ({
   projects: [],
   isLoading: false,
   error: null,
