@@ -117,3 +117,59 @@ export const updateTask = (updatedTask: Task): Task => {
 
   return updatedTask;
 };
+
+// タスクを作成する関数
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  projectId: string;
+  assigneeId?: string;
+  dueDate?: Date | string;
+  startDate?: Date | string;
+  estimatedHours?: number;
+  tags?: string[];
+  parentTaskId?: string;
+}
+
+export const createTask = (input: CreateTaskInput): Task => {
+  const now = new Date();
+
+  // 日付文字列をDate型に変換
+  const dueDate = input.dueDate
+    ? typeof input.dueDate === "string"
+      ? new Date(input.dueDate)
+      : input.dueDate
+    : undefined;
+  const startDate = input.startDate
+    ? typeof input.startDate === "string"
+      ? new Date(input.startDate)
+      : input.startDate
+    : undefined;
+
+  const newTask: Task = {
+    id: uuidv4(),
+    title: input.title,
+    description: input.description || "",
+    status: input.status || TaskStatus.TODO,
+    priority: input.priority || Priority.MEDIUM,
+    projectId: input.projectId,
+    assigneeId: input.assigneeId || "未割り当て",
+    createdBy: "current-user", // 実際の認証システムと連携する場合は現在のユーザーIDを使用
+    createdAt: now,
+    updatedAt: now,
+    dueDate,
+    startDate,
+    estimatedHours: input.estimatedHours,
+    actualHours: 0,
+    tags: input.tags || [],
+    parentTaskId: input.parentTaskId,
+    subtasks: [],
+  };
+
+  // モックデータに追加
+  mockTasks.push(newTask);
+
+  return newTask;
+};
