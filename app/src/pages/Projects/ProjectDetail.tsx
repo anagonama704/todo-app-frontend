@@ -35,6 +35,7 @@ import {
   IconInfoCircle,
   IconList,
   IconChartBar,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect } from "react";
@@ -55,6 +56,8 @@ const ProjectDetail = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [projectProgress, setProjectProgress] = useState<number>(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editedTask, setEditedTask] = useState<Task | null>(null);
 
   // プロジェクトのタスク完了率を計算
   const calculateProjectProgress = () => {
@@ -79,6 +82,13 @@ const ProjectDetail = () => {
     setProjectProgress(progress);
   }, [id, selectedTask]);
 
+  // selectedTaskが変更されたらeditedTaskも更新
+  useEffect(() => {
+    if (selectedTask) {
+      setEditedTask({ ...selectedTask });
+    }
+  }, [selectedTask]);
+
   if (!project || !id) {
     return (
       <Container>
@@ -88,24 +98,42 @@ const ProjectDetail = () => {
   }
 
   const handleDelete = async () => {
-    if (window.confirm("このプロジェクトを削除してもよろしいですか？")) {
-      try {
-        await deleteProject(id);
-        notifications.show({
-          title: "プロジェクトを削除しました",
-          message: "プロジェクトが正常に削除されました",
-          color: "green",
-          icon: <IconCheck size={16} />,
-        });
-        navigate("/projects");
-      } catch (error) {
-        notifications.show({
-          title: "エラーが発生しました",
-          message: "プロジェクトの削除に失敗しました",
-          color: "red",
-          icon: <IconX size={16} />,
-        });
+    try {
+      await deleteProject(id);
+      notifications.show({
+        title: "プロジェクトを削除しました",
+        message: "プロジェクトが正常に削除されました",
+        color: "green",
+        icon: <IconCheck size={16} />,
+      });
+      navigate("/projects");
+    } catch (error) {
+      notifications.show({
+        title: "エラーが発生しました",
+        message: "プロジェクトの削除に失敗しました",
+        color: "red",
+        icon: <IconX size={16} />,
+      });
+    }
+  };
+
+  const handleTaskChange = (field: string, value: any) => {
+    if (!editedTask) return;
+
+    const updatedTask = { ...editedTask, [field]: value };
+    setEditedTask(updatedTask);
+
+    // 変更を保存
+    try {
+      updateTask(updatedTask);
+
+      // タスクのステータスが変更された場合は進捗状況を更新
+      if (field === "status") {
+        const progress = calculateProjectProgress();
+        setProjectProgress(progress);
       }
+    } catch (error) {
+      console.error("タスクの更新に失敗しました", error);
     }
   };
 
@@ -277,35 +305,6 @@ const ProjectDetail = () => {
   );
 
   const renderTaskModal = () => {
-    const [editedTask, setEditedTask] = useState<Task | null>(null);
-
-    // selectedTaskが変更されたらeditedTaskも更新
-    useEffect(() => {
-      if (selectedTask) {
-        setEditedTask({ ...selectedTask });
-      }
-    }, [selectedTask]);
-
-    const handleTaskChange = (field: string, value: any) => {
-      if (!editedTask) return;
-
-      const updatedTask = { ...editedTask, [field]: value };
-      setEditedTask(updatedTask);
-
-      // 変更を保存
-      try {
-        updateTask(updatedTask);
-
-        // タスクのステータスが変更された場合は進捗状況を更新
-        if (field === "status") {
-          const progress = calculateProjectProgress();
-          setProjectProgress(progress);
-        }
-      } catch (error) {
-        console.error("タスクの更新に失敗しました", error);
-      }
-    };
-
     return (
       <Modal
         opened={!!selectedTask}
@@ -779,7 +778,7 @@ const ProjectDetail = () => {
           </Stack>
           <Group>
             <Button
-              variant="light"
+              variant="outline"
               leftSection={<IconEdit size={16} />}
               onClick={() => navigate(`/projects/${id}/edit`)}
             >
@@ -789,7 +788,7 @@ const ProjectDetail = () => {
               variant="light"
               color="red"
               size="lg"
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
             >
               <IconTrash size={16} />
             </ActionIcon>
@@ -827,6 +826,45 @@ const ProjectDetail = () => {
         </Tabs>
       </Stack>
       {renderTaskModal()}
+
+      {/* 削除確認モーダル */}
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="プロジェクトの削除"
+        centered
+        size="md"
+      >
+        <Stack gap="md">
+          <Group gap="xs">
+            <ThemeIcon color="red" size="lg" radius="xl">
+              <IconAlertTriangle size={20} />
+            </ThemeIcon>
+            <Text fw={500} size="lg">
+              このプロジェクトを削除しますか？
+            </Text>
+          </Group>
+
+          <Text color="dimmed">
+            この操作は取り消せません。プロジェクト「{project.title}
+            」とそれに関連するすべてのタスクが完全に削除されます。
+          </Text>
+
+          <Divider my="sm" />
+
+          <Group justify="right" gap="sm">
+            <Button
+              variant="default"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button color="red" onClick={handleDelete}>
+              削除する
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 };
