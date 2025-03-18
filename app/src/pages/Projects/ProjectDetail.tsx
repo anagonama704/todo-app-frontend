@@ -46,7 +46,6 @@ import {
   CreateTaskInput,
   getTasksByProjectId,
   updateTask,
-  createTask,
 } from "../../features/tasks/mocks/tasks";
 
 const ProjectDetail = () => {
@@ -154,18 +153,13 @@ const ProjectDetail = () => {
 
   const handleAddTask = async () => {
     try {
-      const task: Task = createTask({
-        title: newTask.title,
-        description: newTask.description,
-        status: newTask.status,
-        priority: newTask.priority,
-        projectId: newTask.projectId,
-        assigneeId: newTask.assigneeId,
-        dueDate: newTask.dueDate,
-        startDate: newTask.startDate,
-        estimatedHours: newTask.estimatedHours,
-        tags: newTask.tags,
-      } as CreateTaskInput);
+      notifications.show({
+        title: "タスクを作成しました",
+        message: "タスクが正常に作成されました",
+        color: "green",
+        icon: <IconCheck size={16} />,
+      });
+
       setIsAddTaskModalOpen(false);
       setNewTask({
         title: "",
