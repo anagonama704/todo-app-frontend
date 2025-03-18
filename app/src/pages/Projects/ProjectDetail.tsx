@@ -35,6 +35,7 @@ import {
   IconList,
   IconChartBar,
   IconAlertTriangle,
+  IconPlus,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useState, useEffect } from "react";
@@ -42,8 +43,10 @@ import {
   Task,
   TaskStatus,
   Priority,
+  CreateTaskInput,
   getTasksByProjectId,
   updateTask,
+  createTask,
 } from "../../features/tasks/mocks/tasks";
 
 const ProjectDetail = () => {
@@ -56,7 +59,20 @@ const ProjectDetail = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [projectProgress, setProjectProgress] = useState<number>(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editedTask, setEditedTask] = useState<Task | null>(null);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
+  const [newTask, setNewTask] = useState<CreateTaskInput>({
+    title: "",
+    description: "",
+    status: TaskStatus.TODO,
+    priority: Priority.MEDIUM,
+    projectId: id || "",
+    assigneeId: "",
+    dueDate: "",
+    startDate: "",
+    estimatedHours: 0,
+    tags: [],
+  });
 
   // プロジェクトのタスク完了率を計算
   const calculateProjectProgress = () => {
@@ -84,7 +100,7 @@ const ProjectDetail = () => {
   // selectedTaskが変更されたらeditedTaskも更新
   useEffect(() => {
     if (selectedTask) {
-      setEditedTask({ ...selectedTask });
+      setNewTask({ ...selectedTask });
     }
   }, [selectedTask]);
 
@@ -117,10 +133,10 @@ const ProjectDetail = () => {
   };
 
   const handleTaskChange = (field: string, value: any) => {
-    if (!editedTask) return;
+    if (!selectedTask) return;
 
-    const updatedTask = { ...editedTask, [field]: value };
-    setEditedTask(updatedTask);
+    const updatedTask = { ...selectedTask, [field]: value };
+    setNewTask(updatedTask);
 
     // 変更を保存
     try {
@@ -133,6 +149,73 @@ const ProjectDetail = () => {
       }
     } catch (error) {
       console.error("タスクの更新に失敗しました", error);
+    }
+  };
+
+  const handleAddTask = async () => {
+    try {
+      const task: Task = createTask({
+        title: newTask.title,
+        description: newTask.description,
+        status: newTask.status,
+        priority: newTask.priority,
+        projectId: newTask.projectId,
+        assigneeId: newTask.assigneeId,
+        dueDate: newTask.dueDate,
+        startDate: newTask.startDate,
+        estimatedHours: newTask.estimatedHours,
+        tags: newTask.tags,
+      } as CreateTaskInput);
+      setIsAddTaskModalOpen(false);
+      setNewTask({
+        title: "",
+        description: "",
+        status: TaskStatus.TODO,
+        priority: Priority.MEDIUM,
+        projectId: id || "",
+        assigneeId: "",
+        dueDate: "",
+        startDate: "",
+        estimatedHours: 0,
+        tags: [],
+      });
+    } catch (error) {
+      console.error("タスクの作成に失敗しました:", error);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    try {
+      // TODO: タスク削除のAPIを呼び出す
+      notifications.show({
+        title: "タスクを削除しました",
+        message: "タスクが正常に削除されました",
+        color: "green",
+        icon: <IconCheck size={16} />,
+      });
+      setIsDeleteTaskModalOpen(false);
+      setSelectedTask(null);
+      setNewTask({
+        title: "",
+        description: "",
+        status: TaskStatus.TODO,
+        priority: Priority.MEDIUM,
+        projectId: id || "",
+        assigneeId: "",
+        dueDate: "",
+        startDate: "",
+        estimatedHours: 0,
+        tags: [],
+      });
+      const progress = calculateProjectProgress();
+      setProjectProgress(progress);
+    } catch (error) {
+      notifications.show({
+        title: "エラーが発生しました",
+        message: "タスクの削除に失敗しました",
+        color: "red",
+        icon: <IconX size={16} />,
+      });
     }
   };
 
@@ -305,192 +388,184 @@ const ProjectDetail = () => {
 
   const renderTaskModal = () => {
     return (
-      <Modal
-        opened={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        title={
-          editedTask && (
-            <TextInput
-              value={editedTask.title}
-              onChange={(e) => handleTaskChange("title", e.target.value)}
-              variant="unstyled"
-              size="lg"
-              style={{ fontWeight: 500 }}
-            />
-          )
-        }
-        size="lg"
-      >
-        {editedTask && (
-          <Stack gap="md">
-            {/* タスクの説明 */}
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                説明
-              </Text>
+      <>
+        <Modal
+          opened={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          title={
+            newTask && (
               <TextInput
-                value={editedTask.description || ""}
-                onChange={(e) =>
-                  handleTaskChange("description", e.target.value)
-                }
-                placeholder="説明を入力"
+                value={newTask.title}
+                onChange={(e) => handleTaskChange("title", e.target.value)}
+                variant="unstyled"
+                size="lg"
+                style={{ fontWeight: 500 }}
                 styles={(theme) => ({
                   input: {
-                    borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                    borderLeft: `4px solid ${theme.colors.blue[5]}`,
                     paddingLeft: theme.spacing.sm,
                   },
                 })}
               />
-            </div>
+            )
+          }
+          size="lg"
+        >
+          {newTask && (
+            <Stack gap="md">
+              {/* タスクの説明 */}
+              <div>
+                <Text size="sm" c="dimmed" mb="xs">
+                  説明
+                </Text>
+                <TextInput
+                  value={newTask.description || ""}
+                  onChange={(e) =>
+                    handleTaskChange("description", e.target.value)
+                  }
+                  placeholder="説明を入力"
+                  styles={(theme) => ({
+                    input: {
+                      borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                      paddingLeft: theme.spacing.sm,
+                    },
+                  })}
+                />
+              </div>
 
-            <Divider />
+              <Divider />
 
-            {/* タスクのメタ情報 */}
-            <Grid>
-              <Grid.Col span={6}>
-                <Stack gap="sm">
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      ステータス
-                    </Text>
-                    <Select
-                      value={editedTask.status}
-                      onChange={(value) => handleTaskChange("status", value)}
-                      data={[
-                        { value: TaskStatus.TODO, label: "未着手" },
-                        { value: TaskStatus.IN_PROGRESS, label: "進行中" },
-                        { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
-                        { value: TaskStatus.DONE, label: "完了" },
-                      ]}
-                      allowDeselect={false}
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${
-                            editedTask.status === TaskStatus.TODO
-                              ? theme.colors.gray[5]
-                              : editedTask.status === TaskStatus.IN_PROGRESS
-                                ? theme.colors.blue[5]
-                                : editedTask.status === TaskStatus.IN_REVIEW
-                                  ? theme.colors.yellow[5]
-                                  : theme.colors.green[5]
-                          }`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
-                    />
-                  </div>
-
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      優先度
-                    </Text>
-                    <Select
-                      value={editedTask.priority}
-                      onChange={(value) => handleTaskChange("priority", value)}
-                      data={[
-                        { value: Priority.HIGH, label: "高" },
-                        { value: Priority.MEDIUM, label: "中" },
-                        { value: Priority.LOW, label: "低" },
-                      ]}
-                      allowDeselect={false}
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${
-                            editedTask.priority === Priority.HIGH
-                              ? theme.colors.red[5]
-                              : editedTask.priority === Priority.MEDIUM
-                                ? theme.colors.yellow[5]
-                                : theme.colors.green[5]
-                          }`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
-                    />
-                  </div>
-
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      担当者
-                    </Text>
-                    <Group gap="xs">
-                      <Avatar size="sm" radius="xl">
-                        {editedTask.assigneeId[0]}
-                      </Avatar>
-                      <TextInput
-                        value={editedTask.assigneeId}
-                        onChange={(e) =>
-                          handleTaskChange("assigneeId", e.target.value)
-                        }
-                        size="sm"
-                        style={{ flex: 1 }}
+              {/* タスクのメタ情報 */}
+              <Grid>
+                <Grid.Col span={6}>
+                  <Stack gap="sm">
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        ステータス
+                      </Text>
+                      <Select
+                        value={newTask.status}
+                        onChange={(value) => handleTaskChange("status", value)}
+                        data={[
+                          { value: TaskStatus.TODO, label: "未着手" },
+                          { value: TaskStatus.IN_PROGRESS, label: "進行中" },
+                          { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
+                          { value: TaskStatus.DONE, label: "完了" },
+                        ]}
+                        allowDeselect={false}
                         styles={(theme) => ({
                           input: {
-                            borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                            borderLeft: `4px solid ${
+                              newTask.status === TaskStatus.DONE
+                                ? theme.colors.green[5]
+                                : newTask.status === TaskStatus.IN_PROGRESS
+                                  ? theme.colors.blue[5]
+                                  : newTask.status === TaskStatus.IN_REVIEW
+                                    ? theme.colors.yellow[5]
+                                    : theme.colors.gray[5]
+                            }`,
                             paddingLeft: theme.spacing.sm,
                           },
                         })}
                       />
-                    </Group>
-                  </div>
-                </Stack>
-              </Grid.Col>
+                    </div>
 
-              <Grid.Col span={6}>
-                <Stack gap="sm">
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      期限
-                    </Text>
-                    <TextInput
-                      type="date"
-                      value={
-                        editedTask.dueDate
-                          ? new Date(editedTask.dueDate)
-                              .toISOString()
-                              .split("T")[0]
-                          : ""
-                      }
-                      onChange={(e) =>
-                        handleTaskChange(
-                          "dueDate",
-                          e.target.value
-                            ? new Date(e.target.value).toISOString()
-                            : null
-                        )
-                      }
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${theme.colors.blue[5]}`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
-                    />
-                  </div>
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        優先度
+                      </Text>
+                      <Select
+                        value={newTask.priority}
+                        onChange={(value) =>
+                          handleTaskChange("priority", value)
+                        }
+                        data={[
+                          { value: Priority.LOW, label: "低" },
+                          { value: Priority.MEDIUM, label: "中" },
+                          { value: Priority.HIGH, label: "高" },
+                        ]}
+                        allowDeselect={false}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${
+                              newTask.priority === Priority.HIGH
+                                ? theme.colors.red[5]
+                                : newTask.priority === Priority.MEDIUM
+                                  ? theme.colors.yellow[5]
+                                  : theme.colors.green[5]
+                            }`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
 
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      開始日
-                    </Text>
-                    <Group gap="xs">
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        担当者
+                      </Text>
+                      <Group gap="xs">
+                        <Avatar size="sm" radius="xl">
+                          {newTask.assigneeId ? newTask.assigneeId[0] : "?"}
+                        </Avatar>
+                        <TextInput
+                          value={newTask.assigneeId}
+                          onChange={(e) =>
+                            handleTaskChange("assigneeId", e.target.value)
+                          }
+                          size="sm"
+                          style={{ flex: 1 }}
+                          styles={(theme) => ({
+                            input: {
+                              borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                              paddingLeft: theme.spacing.sm,
+                            },
+                          })}
+                        />
+                      </Group>
+                    </div>
+                  </Stack>
+                </Grid.Col>
+
+                <Grid.Col span={6}>
+                  <Stack gap="sm">
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        期限
+                      </Text>
                       <TextInput
                         type="date"
                         value={
-                          editedTask.startDate
-                            ? new Date(editedTask.startDate)
-                                .toISOString()
-                                .split("T")[0]
+                          typeof newTask.dueDate === "string"
+                            ? newTask.dueDate
                             : ""
                         }
                         onChange={(e) =>
-                          handleTaskChange(
-                            "startDate",
-                            e.target.value
-                              ? new Date(e.target.value).toISOString()
-                              : null
-                          )
+                          handleTaskChange("dueDate", e.target.value)
                         }
-                        size="sm"
-                        style={{ flex: 1 }}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        開始日
+                      </Text>
+                      <TextInput
+                        type="date"
+                        value={
+                          typeof newTask.startDate === "string"
+                            ? newTask.startDate
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleTaskChange("startDate", e.target.value)
+                        }
                         styles={(theme) => ({
                           input: {
                             borderLeft: `4px solid ${theme.colors.indigo[5]}`,
@@ -498,82 +573,144 @@ const ProjectDetail = () => {
                           },
                         })}
                       />
-                    </Group>
-                  </div>
+                    </div>
 
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      見積時間（時間）
-                    </Text>
-                    <NumberInput
-                      value={editedTask.estimatedHours || 0}
-                      onChange={(value) =>
-                        handleTaskChange("estimatedHours", value)
-                      }
-                      min={0}
-                      step={0.5}
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${theme.colors.cyan[5]}`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
-                    />
-                  </div>
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        見積時間（時間）
+                      </Text>
+                      <NumberInput
+                        value={
+                          typeof newTask.estimatedHours === "number"
+                            ? newTask.estimatedHours
+                            : 0
+                        }
+                        onChange={(value) =>
+                          handleTaskChange(
+                            "estimatedHours",
+                            typeof value === "number" ? value : 0
+                          )
+                        }
+                        min={0}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.orange[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
 
-                  <div>
-                    <Text size="sm" c="dimmed" mb={4}>
-                      実績時間（時間）
-                    </Text>
-                    <NumberInput
-                      value={editedTask.actualHours || 0}
-                      onChange={(value) =>
-                        handleTaskChange("actualHours", value)
-                      }
-                      min={0}
-                      step={0.5}
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${theme.colors.teal[5]}`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
-                    />
-                  </div>
-                </Stack>
-              </Grid.Col>
-            </Grid>
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        実績時間（時間）
+                      </Text>
+                      <NumberInput
+                        value={0}
+                        onChange={() => {}}
+                        min={0}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.cyan[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+                  </Stack>
+                </Grid.Col>
+              </Grid>
 
-            <Divider />
+              <Divider />
 
-            {/* タグ */}
-            <div>
-              <Text size="sm" c="dimmed" mb={4}>
-                タグ
+              {/* タグ */}
+              <div>
+                <Text size="sm" c="dimmed" mb={4}>
+                  タグ
+                </Text>
+                <TextInput
+                  value={newTask.tags?.join(", ") || ""}
+                  onChange={(e) =>
+                    handleTaskChange(
+                      "tags",
+                      e.target.value.split(",").map((tag) => tag.trim())
+                    )
+                  }
+                  placeholder="カンマ区切りでタグを入力"
+                  styles={(theme) => ({
+                    input: {
+                      borderLeft: `4px solid ${theme.colors.teal[5]}`,
+                      paddingLeft: theme.spacing.sm,
+                    },
+                  })}
+                />
+              </div>
+
+              <Divider />
+
+              {/* モーダルフッター */}
+              <Group justify="space-between">
+                <Button
+                  variant="light"
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                  onClick={() => setIsDeleteTaskModalOpen(true)}
+                >
+                  タスクを削除
+                </Button>
+                <Group>
+                  <Button
+                    variant="default"
+                    onClick={() => setSelectedTask(null)}
+                  >
+                    キャンセル
+                  </Button>
+                  <Button onClick={() => setSelectedTask(null)}>保存</Button>
+                </Group>
+              </Group>
+            </Stack>
+          )}
+        </Modal>
+
+        {/* タスク削除確認モーダル */}
+        <Modal
+          opened={isDeleteTaskModalOpen}
+          onClose={() => setIsDeleteTaskModalOpen(false)}
+          title="タスクの削除"
+          centered
+          size="md"
+        >
+          <Stack gap="md">
+            <Group gap="xs">
+              <ThemeIcon color="red" size="lg" radius="xl">
+                <IconAlertTriangle size={20} />
+              </ThemeIcon>
+              <Text fw={500} size="lg">
+                このタスクを削除しますか？
               </Text>
-              <TextInput
-                value={editedTask.tags?.join(", ") || ""}
-                onChange={(e) =>
-                  handleTaskChange(
-                    "tags",
-                    e.target.value
-                      .split(",")
-                      .map((tag) => tag.trim())
-                      .filter((tag) => tag !== "")
-                  )
-                }
-                placeholder="カンマ区切りでタグを入力"
-                styles={(theme) => ({
-                  input: {
-                    borderLeft: `4px solid ${theme.colors.orange[5]}`,
-                    paddingLeft: theme.spacing.sm,
-                  },
-                })}
-              />
-            </div>
+            </Group>
+
+            <Text color="dimmed">
+              この操作は取り消せません。タスク「{newTask.title}
+              」が完全に削除されます。
+            </Text>
+
+            <Divider my="sm" />
+
+            <Group justify="right" gap="sm">
+              <Button
+                variant="default"
+                onClick={() => setIsDeleteTaskModalOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button color="red" onClick={handleDeleteTask}>
+                削除する
+              </Button>
+            </Group>
           </Stack>
-        )}
-      </Modal>
+        </Modal>
+      </>
     );
   };
 
@@ -611,10 +748,23 @@ const ProjectDetail = () => {
               allowDeselect={false}
             />
             <Button
-              variant="light"
-              size="xs"
-              leftSection={<IconEdit size={14} />}
-              onClick={() => navigate(`/projects/${id}/tasks/new`)}
+              leftSection={<IconPlus size={16} />}
+              onClick={() => {
+                setNewTask({
+                  title: "",
+                  description: "",
+                  status: TaskStatus.TODO,
+                  priority: Priority.MEDIUM,
+                  projectId: id || "",
+                  assigneeId: "",
+                  dueDate: "",
+                  startDate: "",
+                  estimatedHours: 0,
+                  tags: [],
+                });
+                setIsAddTaskModalOpen(true);
+              }}
+              size="sm"
             >
               タスクを追加
             </Button>
@@ -637,14 +787,6 @@ const ProjectDetail = () => {
                 <br />
                 「タスクを追加」ボタンから新しいタスクを作成できます。
               </Text>
-              <Button
-                variant="light"
-                size="xs"
-                leftSection={<IconEdit size={14} />}
-                onClick={() => navigate(`/projects/${id}/tasks/new`)}
-              >
-                タスクを追加
-              </Button>
             </Stack>
           </Card>
         ) : (
@@ -656,16 +798,13 @@ const ProjectDetail = () => {
                 <Table.Th>優先度</Table.Th>
                 <Table.Th>担当者</Table.Th>
                 <Table.Th>期限</Table.Th>
+                <Table.Th>操作</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {filteredTasks.map((task) => (
-                <Table.Tr
-                  key={task.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedTask(task)}
-                >
-                  <Table.Td>
+                <Table.Tr key={task.id} style={{ cursor: "pointer" }}>
+                  <Table.Td onClick={() => setSelectedTask(task)}>
                     <Group gap="xs">
                       <Text size="sm" fw={500}>
                         {task.title}
@@ -686,7 +825,7 @@ const ProjectDetail = () => {
                       </Text>
                     )}
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td onClick={() => setSelectedTask(task)}>
                     <Badge
                       color={
                         task.status === TaskStatus.DONE
@@ -707,7 +846,7 @@ const ProjectDetail = () => {
                             : "未着手"}
                     </Badge>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td onClick={() => setSelectedTask(task)}>
                     <Badge
                       color={
                         task.priority === Priority.HIGH
@@ -724,7 +863,7 @@ const ProjectDetail = () => {
                           : "低"}
                     </Badge>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td onClick={() => setSelectedTask(task)}>
                     <Group gap="xs">
                       <Avatar size="sm" radius="xl">
                         {task.assigneeId[0]}
@@ -732,7 +871,7 @@ const ProjectDetail = () => {
                       <Text size="sm">{task.assigneeId}</Text>
                     </Group>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td onClick={() => setSelectedTask(task)}>
                     <Group gap="xs">
                       <IconCalendar size={14} style={{ color: "gray" }} />
                       <Text size="sm">
@@ -741,6 +880,31 @@ const ProjectDetail = () => {
                           : "-"}
                       </Text>
                     </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNewTask({
+                          title: task.title,
+                          description: task.description || "",
+                          status: task.status,
+                          priority: task.priority,
+                          projectId: task.projectId,
+                          assigneeId: task.assigneeId,
+                          dueDate: task.dueDate || "",
+                          startDate: task.startDate || "",
+                          estimatedHours: task.estimatedHours,
+                          tags: task.tags,
+                        });
+                        setIsDeleteTaskModalOpen(true);
+                      }}
+                    >
+                      <IconTrash size={14} />
+                    </ActionIcon>
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -860,6 +1024,267 @@ const ProjectDetail = () => {
             </Button>
             <Button color="red" onClick={handleDelete}>
               削除する
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* タスク追加モーダル */}
+      <Modal
+        opened={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+        title="新規タスクの作成"
+        size="lg"
+      >
+        <Stack gap="md">
+          <TextInput
+            label="タイトル"
+            value={newTask.title}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            required
+            styles={(theme) => ({
+              input: {
+                borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                paddingLeft: theme.spacing.sm,
+              },
+            })}
+          />
+          <TextInput
+            label="説明"
+            value={newTask.description}
+            onChange={(e) =>
+              setNewTask({ ...newTask, description: e.target.value })
+            }
+            styles={(theme) => ({
+              input: {
+                borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                paddingLeft: theme.spacing.sm,
+              },
+            })}
+          />
+
+          <Divider />
+
+          {/* タスクのメタ情報 */}
+          <Grid>
+            <Grid.Col span={6}>
+              <Stack gap="sm">
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    ステータス
+                  </Text>
+                  <Select
+                    value={newTask.status}
+                    onChange={(value) =>
+                      setNewTask({ ...newTask, status: value as TaskStatus })
+                    }
+                    data={[
+                      { value: TaskStatus.TODO, label: "未着手" },
+                      { value: TaskStatus.IN_PROGRESS, label: "進行中" },
+                      { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
+                      { value: TaskStatus.DONE, label: "完了" },
+                    ]}
+                    allowDeselect={false}
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${
+                          newTask.status === TaskStatus.DONE
+                            ? theme.colors.green[5]
+                            : newTask.status === TaskStatus.IN_PROGRESS
+                              ? theme.colors.blue[5]
+                              : newTask.status === TaskStatus.IN_REVIEW
+                                ? theme.colors.yellow[5]
+                                : theme.colors.gray[5]
+                        }`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    優先度
+                  </Text>
+                  <Select
+                    value={newTask.priority}
+                    onChange={(value) =>
+                      setNewTask({ ...newTask, priority: value as Priority })
+                    }
+                    data={[
+                      { value: Priority.LOW, label: "低" },
+                      { value: Priority.MEDIUM, label: "中" },
+                      { value: Priority.HIGH, label: "高" },
+                    ]}
+                    allowDeselect={false}
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${
+                          newTask.priority === Priority.HIGH
+                            ? theme.colors.red[5]
+                            : newTask.priority === Priority.MEDIUM
+                              ? theme.colors.yellow[5]
+                              : theme.colors.green[5]
+                        }`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    担当者
+                  </Text>
+                  <Group gap="xs">
+                    <Avatar size="sm" radius="xl">
+                      {newTask.assigneeId ? newTask.assigneeId[0] : "?"}
+                    </Avatar>
+                    <TextInput
+                      value={newTask.assigneeId}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, assigneeId: e.target.value })
+                      }
+                      size="sm"
+                      style={{ flex: 1 }}
+                      styles={(theme) => ({
+                        input: {
+                          borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                          paddingLeft: theme.spacing.sm,
+                        },
+                      })}
+                    />
+                  </Group>
+                </div>
+              </Stack>
+            </Grid.Col>
+
+            <Grid.Col span={6}>
+              <Stack gap="sm">
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    期限
+                  </Text>
+                  <TextInput
+                    type="date"
+                    value={
+                      typeof newTask.dueDate === "string" ? newTask.dueDate : ""
+                    }
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, dueDate: e.target.value })
+                    }
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    開始日
+                  </Text>
+                  <TextInput
+                    type="date"
+                    value={
+                      typeof newTask.startDate === "string"
+                        ? newTask.startDate
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, startDate: e.target.value })
+                    }
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${theme.colors.indigo[5]}`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    見積時間（時間）
+                  </Text>
+                  <NumberInput
+                    value={
+                      typeof newTask.estimatedHours === "number"
+                        ? newTask.estimatedHours
+                        : 0
+                    }
+                    onChange={(value) =>
+                      setNewTask({
+                        ...newTask,
+                        estimatedHours: typeof value === "number" ? value : 0,
+                      })
+                    }
+                    min={0}
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${theme.colors.orange[5]}`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Text size="sm" c="dimmed" mb={4}>
+                    実績時間（時間）
+                  </Text>
+                  <NumberInput
+                    value={0}
+                    onChange={() => {}}
+                    min={0}
+                    styles={(theme) => ({
+                      input: {
+                        borderLeft: `4px solid ${theme.colors.cyan[5]}`,
+                        paddingLeft: theme.spacing.sm,
+                      },
+                    })}
+                  />
+                </div>
+              </Stack>
+            </Grid.Col>
+          </Grid>
+
+          <Divider />
+
+          {/* タグ */}
+          <div>
+            <Text size="sm" c="dimmed" mb={4}>
+              タグ
+            </Text>
+            <TextInput
+              value={newTask.tags?.join(", ") || ""}
+              onChange={(e) =>
+                setNewTask({
+                  ...newTask,
+                  tags: e.target.value.split(",").map((tag) => tag.trim()),
+                })
+              }
+              placeholder="カンマ区切りでタグを入力"
+              styles={(theme) => ({
+                input: {
+                  borderLeft: `4px solid ${theme.colors.teal[5]}`,
+                  paddingLeft: theme.spacing.sm,
+                },
+              })}
+            />
+          </div>
+
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="default"
+              onClick={() => setIsAddTaskModalOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button onClick={handleAddTask} disabled={!newTask.title}>
+              作成
             </Button>
           </Group>
         </Stack>
