@@ -91,10 +91,10 @@ export const router = createBrowserRouter([
         path: "projects/:id/edit",
         element: <EditProject />,
       },
-      {
-        path: "projects/:id/tasks/new",
-        element: <NewTask />,
-      },
+      // {
+      //   path: "projects/:id/tasks/new",
+      //   element: <NewTask />,
+      // },
       {
         path: "tags",
         element: <Tags />,
