@@ -13,7 +13,11 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback } from "react";
 
-export const Sidebar = () => {
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname.endsWith("/")
@@ -23,8 +27,9 @@ export const Sidebar = () => {
   const handleNavigation = useCallback(
     (path: string) => {
       navigate(path);
+      onNavigate?.();
     },
-    [navigate]
+    [navigate, onNavigate]
   );
 
   const mainMenuItems = [
