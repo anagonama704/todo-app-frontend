@@ -235,8 +235,8 @@ const NewTask = () => {
                   />
 
                   <DateInput
-                    label="期限"
-                    placeholder="期限を選択"
+                    label="期限日"
+                    placeholder="期限日を選択"
                     value={formData.dueDate ? new Date(formData.dueDate) : null}
                     onChange={(date) => handleChange("dueDate", date)}
                     clearable

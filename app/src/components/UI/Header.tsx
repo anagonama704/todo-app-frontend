@@ -11,7 +11,9 @@ import {
   Indicator,
   useMantineColorScheme,
   Tooltip,
+  useMantineTheme,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useAuthStore } from "../../features/auth/store/auth";
 import {
   IconUser,
@@ -28,6 +30,8 @@ import { NotificationModal } from "./NotificationModal";
 export const Header = () => {
   const { user, logout } = useAuthStore();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const navigate = useNavigate();
   const isDark = colorScheme === "dark";
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -39,7 +43,12 @@ export const Header = () => {
   };
 
   return (
-    <Box component="header" py="md" px="xl">
+    <Box
+      component="header"
+      w="100%"
+      py={isMobile ? "xs" : "md"}
+      px={isMobile ? "xs" : "xl"}
+    >
       <NotificationModal
         opened={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}
@@ -54,43 +63,47 @@ export const Header = () => {
         </Group>
 
         <Group gap="md">
-          <Tooltip label="通知">
-            <Indicator color="red" size={8} offset={4} disabled={false}>
-              <ActionIcon
-                variant="subtle"
-                color="#59B5F8"
-                size="md"
-                radius="xl"
-                onClick={() => setIsNotificationModalOpen(true)}
-              >
-                <IconBell size={20} />
-              </ActionIcon>
-            </Indicator>
-          </Tooltip>
+          {!isMobile && (
+            <>
+              <Tooltip label="通知">
+                <Indicator color="red" size={8} offset={4} disabled={false}>
+                  <ActionIcon
+                    variant="subtle"
+                    color="#59B5F8"
+                    size="md"
+                    radius="xl"
+                    onClick={() => setIsNotificationModalOpen(true)}
+                  >
+                    <IconBell size={20} />
+                  </ActionIcon>
+                </Indicator>
+              </Tooltip>
 
-          <Tooltip label={isDark ? "ライトモード" : "ダークモード"}>
-            <ActionIcon
-              variant="subtle"
-              color="#59B5F8"
-              size="md"
-              radius="xl"
-              onClick={() => setColorScheme(isDark ? "light" : "dark")}
-            >
-              {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-            </ActionIcon>
-          </Tooltip>
+              <Tooltip label={isDark ? "ライトモード" : "ダークモード"}>
+                <ActionIcon
+                  variant="subtle"
+                  color="#59B5F8"
+                  size="md"
+                  radius="xl"
+                  onClick={() => setColorScheme(isDark ? "light" : "dark")}
+                >
+                  {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+                </ActionIcon>
+              </Tooltip>
 
-          <Tooltip label="ヘルプ">
-            <ActionIcon
-              variant="subtle"
-              color="#59B5F8"
-              size="md"
-              radius="xl"
-              onClick={() => navigate("/help")}
-            >
-              <IconHelp size={20} />
-            </ActionIcon>
-          </Tooltip>
+              <Tooltip label="ヘルプ">
+                <ActionIcon
+                  variant="subtle"
+                  color="#59B5F8"
+                  size="md"
+                  radius="xl"
+                  onClick={() => navigate("/help")}
+                >
+                  <IconHelp size={20} />
+                </ActionIcon>
+              </Tooltip>
+            </>
+          )}
 
           <Box ml="md">
             <Menu shadow="md" width={200} position="bottom-end">
@@ -120,6 +133,30 @@ export const Header = () => {
                 >
                   設定
                 </Menu.Item>
+                {isMobile && (
+                  <>
+                    <Menu.Item
+                      leftSection={<IconBell size={16} />}
+                      onClick={() => setIsNotificationModalOpen(true)}
+                    >
+                      通知
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        isDark ? <IconSun size={16} /> : <IconMoon size={16} />
+                      }
+                      onClick={() => setColorScheme(isDark ? "light" : "dark")}
+                    >
+                      {isDark ? "ライトモード" : "ダークモード"}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconHelp size={16} />}
+                      onClick={() => navigate("/help")}
+                    >
+                      ヘルプ
+                    </Menu.Item>
+                  </>
+                )}
                 <Menu.Divider />
                 <Menu.Item
                   color="red"

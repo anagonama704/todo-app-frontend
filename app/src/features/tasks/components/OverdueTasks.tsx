@@ -39,7 +39,7 @@ export const OverdueTasks = ({ tasks }: OverdueTasksProps) => {
           </Group>
 
           <Group gap="xs" wrap="nowrap">
-            <Tooltip label="期限">
+            <Tooltip label="期限日">
               <Group gap={4} wrap="nowrap">
                 <IconClock size={14} />
                 <Text size="xs" c="red">
