@@ -311,7 +311,7 @@ const ProjectDetail = () => {
               <Group align="center">
                 <IconCalendar size={16} color="gray" />
                 <Text size="sm" c="dimmed">
-                  期限
+                  期限日
                 </Text>
                 <Text>
                   {project.dueDate
@@ -525,7 +525,7 @@ const ProjectDetail = () => {
                   <Stack gap="sm">
                     <div>
                       <Text size="sm" c="dimmed" mb={4}>
-                        期限
+                        期限日
                       </Text>
                       <TextInput
                         type="date"
@@ -742,6 +742,8 @@ const ProjectDetail = () => {
               allowDeselect={false}
             />
             <Button
+              variant="light"
+              color="blue"
               leftSection={<IconPlus size={16} />}
               onClick={() => {
                 setNewTask({
@@ -791,7 +793,7 @@ const ProjectDetail = () => {
                 <Table.Th>ステータス</Table.Th>
                 <Table.Th>優先度</Table.Th>
                 <Table.Th>担当者</Table.Th>
-                <Table.Th>期限</Table.Th>
+                <Table.Th>期限日</Table.Th>
                 <Table.Th>操作</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -881,7 +883,9 @@ const ProjectDetail = () => {
                       color="red"
                       size="sm"
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
+                        setSelectedTask(task);
                         setNewTask({
                           title: task.title,
                           description: task.description || "",
@@ -894,7 +898,7 @@ const ProjectDetail = () => {
                           estimatedHours: task.estimatedHours,
                           tags: task.tags,
                         });
-                        setIsDeleteTaskModalOpen(true);
+                        handleDeleteTask();
                       }}
                     >
                       <IconTrash size={14} />
@@ -1157,7 +1161,7 @@ const ProjectDetail = () => {
               <Stack gap="sm">
                 <div>
                   <Text size="sm" c="dimmed" mb={4}>
-                    期限
+                    期限日
                   </Text>
                   <TextInput
                     type="date"

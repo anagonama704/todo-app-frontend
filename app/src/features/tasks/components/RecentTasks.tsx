@@ -46,7 +46,7 @@ export const RecentTasks = ({ tasks }: RecentTasksProps) => {
 
           <Group gap="xs" wrap="nowrap">
             {task.dueDate && (
-              <Tooltip label="期限">
+              <Tooltip label="期限日">
                 <Group gap={4} wrap="nowrap">
                   <IconClock size={14} />
                   <Text size="xs" c="dimmed">
