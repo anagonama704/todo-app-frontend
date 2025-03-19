@@ -93,7 +93,7 @@ export function NewProject() {
           />
 
           <TextInput
-            label="期限"
+            label="期限日"
             type="date"
             value={formData.dueDate}
             onChange={(e) =>
