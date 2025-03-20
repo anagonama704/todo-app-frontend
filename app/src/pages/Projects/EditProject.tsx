@@ -18,6 +18,7 @@ import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { IconCheck, IconArrowLeft } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
+import { useTagsStore } from "../../features/tags/store/tags";
 import { UpdateProjectInput } from "../../features/projects/types/project";
 import "@mantine/dates/styles.css";
 
@@ -25,7 +26,12 @@ export function EditProject() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { projects, updateProject, isLoading, error } = useProjectsStore();
+  const { tags, fetchTags } = useTagsStore();
   const project = projects.find((p) => p.id === id);
+
+  useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
 
   const [formData, setFormData] = useState<UpdateProjectInput>({
     title: "",
@@ -250,11 +256,16 @@ export function EditProject() {
 
                   <MultiSelect
                     label="タグ"
-                    placeholder="タグを選択または入力"
-                    data={formData.tags || []}
+                    placeholder="タグを選択"
+                    data={tags.map((tag) => ({
+                      value: tag.id,
+                      label: tag.name,
+                      color: tag.color,
+                    }))}
                     value={formData.tags || []}
                     onChange={(value) => handleChange("tags", value)}
                     searchable
+                    clearable
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${theme.colors.orange[5]}`,
