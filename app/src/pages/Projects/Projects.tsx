@@ -25,6 +25,8 @@ import {
   Drawer,
   NavLink,
   rem,
+  MultiSelect,
+  TagsInput,
 } from "@mantine/core";
 import {
   IconEdit,
@@ -42,6 +44,7 @@ import {
   IconSettings,
 } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
+import { useTagsStore } from "../../features/tags/store/tags";
 import {
   ProjectStatus,
   ProjectPriority,
@@ -75,10 +78,12 @@ export function Projects() {
   const [opened, setOpened] = useState(false);
   const { projects, isLoading, error, fetchProjects, deleteProject } =
     useProjectsStore();
+  const { tags, fetchTags } = useTagsStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">(
     "all"
   );
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"createdAt" | "dueDate" | "progress">(
     "createdAt"
   );
@@ -87,7 +92,8 @@ export function Projects() {
 
   useEffect(() => {
     fetchProjects();
-  }, [fetchProjects]);
+    fetchTags();
+  }, [fetchProjects, fetchTags]);
 
   const handleDelete = async () => {
     if (!selectedProject) return;
@@ -118,7 +124,10 @@ export function Projects() {
         project.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         statusFilter === "all" || project.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesTags =
+        selectedTagIds.length === 0 ||
+        selectedTagIds.every((tagId) => project.tags?.includes(tagId));
+      return matchesSearch && matchesStatus && matchesTags;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -177,6 +186,20 @@ export function Projects() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.currentTarget.value)}
               style={{ flex: 1 }}
+            />
+            <TagsInput
+              label="タグ"
+              placeholder="タグで絞り込み"
+              maxTags={2}
+              data={tags.map((tag) => ({
+                value: tag.id,
+                label: tag.name,
+                color: tag.color,
+              }))}
+              value={selectedTagIds}
+              onChange={setSelectedTagIds}
+              clearable
+              style={{ width: 300 }}
             />
             <Select
               label="ステータス"
@@ -253,22 +276,23 @@ export function Projects() {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow =
-                            "0 1px 3px rgba(0,0,0,0.1)";
+                          e.currentTarget.style.boxShadow = "none";
                         }}
                         onClick={() => navigate(`/projects/${project.id}`)}
                       >
-                        <Card.Section withBorder inheritPadding py="xs">
+                        <Stack gap="md">
                           <Group justify="space-between">
-                            <Badge color={statusColors[project.status]}>
-                              {statusLabels[project.status]}
-                            </Badge>
+                            <Text fw={500} size="lg" lineClamp={1}>
+                              {project.title}
+                            </Text>
                             <Menu position="bottom-end">
                               <Menu.Target>
                                 <ActionIcon
                                   variant="subtle"
                                   color="gray"
-                                  onClick={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
                                 >
                                   <IconDots size={16} />
                                 </ActionIcon>
@@ -297,62 +321,64 @@ export function Projects() {
                               </Menu.Dropdown>
                             </Menu>
                           </Group>
-                        </Card.Section>
 
-                        <Stack gap="xs" mt="md" h="100%" pos="relative">
-                          <Group justify="space-between" align="flex-start">
-                            <Title order={3} lineClamp={1} style={{ flex: 1 }}>
-                              {project.title}
-                            </Title>
-                            <Transition
-                              mounted={true}
-                              transition="fade"
-                              duration={200}
-                            >
-                              {(styles) => (
-                                <IconArrowRight
-                                  size={16}
-                                  style={{
-                                    ...styles,
-                                    opacity: 0,
-                                    transition: "opacity 0.2s ease",
-                                  }}
-                                  className="hover-arrow"
-                                />
-                              )}
-                            </Transition>
-                          </Group>
-                          <Box h={40}>
-                            {project.description && (
-                              <Text
-                                size="sm"
-                                color="dimmed"
-                                lineClamp={2}
-                                h="100%"
-                              >
-                                {project.description}
-                              </Text>
-                            )}
-                          </Box>
+                          <Text size="sm" c="dimmed" lineClamp={2}>
+                            {project.description}
+                          </Text>
+
                           <Group gap="xs">
-                            <Badge color={priorityColors[project.priority]}>
+                            <Badge
+                              color={statusColors[project.status]}
+                              variant="light"
+                            >
+                              {statusLabels[project.status]}
+                            </Badge>
+                            <Badge
+                              color={priorityColors[project.priority]}
+                              variant="light"
+                            >
                               {project.priority === "high"
                                 ? "高"
                                 : project.priority === "medium"
                                   ? "中"
                                   : "低"}
                             </Badge>
-                            {project.dueDate && (
-                              <Text size="sm" color="dimmed">
-                                期限日:{" "}
-                                {new Date(project.dueDate).toLocaleDateString()}
-                              </Text>
-                            )}
+                            {project.tags?.map((tagId) => {
+                              const tag = tags.find((t) => t.id === tagId);
+                              return tag ? (
+                                <Badge
+                                  key={tag.id}
+                                  color={tag.color}
+                                  variant="light"
+                                >
+                                  {tag.name}
+                                </Badge>
+                              ) : null;
+                            })}
                           </Group>
-                          <Progress value={project.progress} size="sm" />
-                          <Text size="sm" color="dimmed">
-                            進捗: {project.progress}%
-                          </Text>
+
+                          <Progress
+                            value={project.progress}
+                            color="blue"
+                            size="sm"
+                          />
+
+                          <Group justify="space-between" c="dimmed">
+                            <Text size="sm">
+                              期限:{" "}
+                              {project.dueDate
+                                ? new Date(project.dueDate).toLocaleDateString(
+                                    "ja-JP"
+                                  )
+                                : "未設定"}
+                            </Text>
+                            <Text size="sm">
+                              作成:{" "}
+                              {new Date(project.createdAt).toLocaleDateString(
+                                "ja-JP"
+                              )}
+                            </Text>
+                          </Group>
                         </Stack>
                       </Card>
                     </Grid.Col>
@@ -417,7 +443,6 @@ export function Projects() {
         </Stack>
       </Drawer>
 
-      {/* 削除確認モーダル */}
       <Modal
         opened={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
