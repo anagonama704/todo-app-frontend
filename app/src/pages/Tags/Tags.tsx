@@ -13,12 +13,10 @@ import {
   Menu,
   TextInput,
   ColorInput,
+  Center,
   Modal,
   ThemeIcon,
   Divider,
-  Box,
-  Center,
-  Paper,
   Loader,
   Alert,
 } from "@mantine/core";

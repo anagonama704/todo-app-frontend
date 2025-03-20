@@ -18,14 +18,12 @@ import {
   Center,
   Paper,
   ScrollArea,
-  Transition,
   Modal,
   ThemeIcon,
   Divider,
   Drawer,
   NavLink,
   rem,
-  MultiSelect,
   TagsInput,
 } from "@mantine/core";
 import {
@@ -33,7 +31,6 @@ import {
   IconTrash,
   IconSearch,
   IconFolder,
-  IconArrowRight,
   IconDots,
   IconCheck,
   IconX,
