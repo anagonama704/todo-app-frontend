@@ -1,5 +1,5 @@
+export type TaskStatus = "planning" | "in_progress" | "completed" | "archived";
 export type TaskPriority = "low" | "medium" | "high";
-export type TaskStatus = "todo" | "in_progress" | "completed";
 
 export interface Task {
   id: string;
@@ -11,16 +11,16 @@ export interface Task {
   projectId: string;
   assigneeId: string;
   tags?: string[];
+  progress: number; // 0-100の進捗率
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
-  progress: number; // 0-100の進捗率
 }
 
 // タスク作成時の型（IDや作成日時などは自動生成されるため除外）
 export type CreateTaskInput = Omit<
   Task,
-  "id" | "createdAt" | "updatedAt" | "completedAt" | "progress"
+  "id" | "createdAt" | "updatedAt" | "completedAt"
 >;
 
 // タスク更新時の型（一部のフィールドのみ更新可能）
