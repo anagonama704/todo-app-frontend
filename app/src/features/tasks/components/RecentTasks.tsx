@@ -13,9 +13,10 @@ const priorityColors = {
 } as const;
 
 const statusColors = {
-  todo: "gray",
+  planning: "gray",
   in_progress: "blue",
   completed: "green",
+  archived: "gray",
 } as const;
 
 export const RecentTasks = ({ tasks }: RecentTasksProps) => {
