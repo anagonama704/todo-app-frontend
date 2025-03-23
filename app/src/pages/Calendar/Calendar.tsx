@@ -12,6 +12,7 @@ import {
   Box,
   Stack,
   Flex,
+  Badge,
 } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
@@ -29,6 +30,16 @@ export const Calendar = () => {
   // 月の最後の日を取得
   const getLastDayOfMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  };
+
+  // 日付が今日かどうかをチェック
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
   };
 
   // カレンダーグリッドの日付を生成
@@ -159,22 +170,50 @@ export const Calendar = () => {
                     backgroundColor: day.isCurrentMonth
                       ? undefined
                       : "var(--mantine-color-gray-0)",
+                    display: "flex",
+                    justifyContent: "center",
                   }}
                 >
-                  <Text
-                    size="sm"
-                    c={
-                      !day.isCurrentMonth
-                        ? "dimmed"
-                        : day.date.getDay() === 0
-                          ? "red"
-                          : day.date.getDay() === 6
-                            ? "blue"
-                            : undefined
-                    }
-                  >
-                    {day.date.getDate()}
-                  </Text>
+                  {isToday(day.date) ? (
+                    <Badge
+                      size="lg"
+                      radius="xl"
+                      variant="filled"
+                      color="blue"
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        padding: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {day.date.getDate()}
+                    </Badge>
+                  ) : (
+                    <Text
+                      size="sm"
+                      c={
+                        !day.isCurrentMonth
+                          ? "dimmed"
+                          : day.date.getDay() === 0
+                            ? "red"
+                            : day.date.getDay() === 6
+                              ? "blue"
+                              : undefined
+                      }
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {day.date.getDate()}
+                    </Text>
+                  )}
                 </Box>
               </Grid.Col>
             ))}
