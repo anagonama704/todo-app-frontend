@@ -18,7 +18,6 @@ import {
   ActionIcon,
   Menu,
   TagsInput,
-  Loader,
   Modal,
   Divider,
   ThemeIcon,
@@ -66,7 +65,7 @@ const statusLabels: Record<TaskStatus, string> = {
 };
 
 export const Today = () => {
-  const { tasks, isLoading, error, fetchTasks, deleteTask } = useTasksStore();
+  const { tasks, error, fetchTasks, deleteTask } = useTasksStore();
   const { tags, fetchTags } = useTagsStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
