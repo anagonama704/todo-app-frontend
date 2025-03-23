@@ -18,6 +18,7 @@ import {
   ActionIcon,
   Menu,
   TagsInput,
+  Loader,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -131,11 +132,37 @@ export const Today = () => {
     });
 
   if (isLoading) {
-    return <Text>読み込み中...</Text>;
+    return (
+      <Container size="xl" h="80vh">
+        <Center h="100%">
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Text size="lg" c="dimmed">
+              読み込み中...
+            </Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
   }
 
   if (error) {
-    return <Text color="red">{error}</Text>;
+    return (
+      <Container size="xl" h="80vh">
+        <Center h="100%">
+          <Paper p="xl" radius="md" withBorder>
+            <Stack align="center" gap="md">
+              <Text size="lg" c="red">
+                {error}
+              </Text>
+              <Button variant="light" onClick={fetchTasks}>
+                再試行
+              </Button>
+            </Stack>
+          </Paper>
+        </Center>
+      </Container>
+    );
   }
 
   return (
