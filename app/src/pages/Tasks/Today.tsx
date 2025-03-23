@@ -19,6 +19,12 @@ import {
   Menu,
   TagsInput,
   Loader,
+  Modal,
+  Divider,
+  ThemeIcon,
+  NumberInput,
+  Avatar,
+  Grid,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -28,6 +34,7 @@ import {
   IconTrash,
   IconCheck,
   IconX,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { useTasksStore } from "../../features/tasks/store/tasks";
 import { useTagsStore } from "../../features/tags/store/tags";
@@ -67,11 +74,20 @@ export const Today = () => {
   const [sortBy, setSortBy] = useState<"priority" | "dueDate" | "progress">(
     "priority"
   );
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [newTask, setNewTask] = useState<Task | null>(null);
+  const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTasks();
     fetchTags();
   }, [fetchTasks, fetchTags]);
+
+  useEffect(() => {
+    if (selectedTask) {
+      setNewTask({ ...selectedTask });
+    }
+  }, [selectedTask]);
 
   const handleDelete = async (taskId: string) => {
     try {
@@ -89,6 +105,21 @@ export const Today = () => {
         color: "red",
         icon: <IconX size={16} />,
       });
+    }
+  };
+
+  const handleTaskChange = (field: string, value: any) => {
+    if (!newTask) return;
+
+    const updatedTask = { ...newTask, [field]: value };
+    setNewTask(updatedTask);
+
+    try {
+      // TODO: タスクの更新処理を実装
+      // const progress = calculateProgress();
+      // setProjectProgress(progress);
+    } catch (error) {
+      console.error("タスクの更新に失敗しました", error);
     }
   };
 
@@ -131,20 +162,299 @@ export const Today = () => {
       }
     });
 
-  if (isLoading) {
+  const renderTaskModal = () => {
     return (
-      <Container size="xl" h="80vh">
-        <Center h="100%">
-          <Stack align="center" gap="md">
-            <Loader size="xl" />
-            <Text size="lg" c="dimmed">
-              読み込み中...
+      <>
+        <Modal
+          opened={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          title={
+            newTask && (
+              <TextInput
+                value={newTask.title}
+                onChange={(e) => handleTaskChange("title", e.target.value)}
+                variant="unstyled"
+                size="lg"
+                style={{ fontWeight: 500 }}
+                styles={(theme) => ({
+                  input: {
+                    borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                    paddingLeft: theme.spacing.sm,
+                  },
+                })}
+              />
+            )
+          }
+          size="lg"
+        >
+          {newTask && (
+            <Stack gap="md">
+              {/* タスクの説明 */}
+              <div>
+                <Text size="sm" c="dimmed" mb="xs">
+                  説明
+                </Text>
+                <TextInput
+                  value={newTask.description || ""}
+                  onChange={(e) =>
+                    handleTaskChange("description", e.target.value)
+                  }
+                  placeholder="説明を入力"
+                  styles={(theme) => ({
+                    input: {
+                      borderLeft: `4px solid ${theme.colors.gray[5]}`,
+                      paddingLeft: theme.spacing.sm,
+                    },
+                  })}
+                />
+              </div>
+
+              <Divider />
+
+              {/* タスクのメタ情報 */}
+              <Grid>
+                <Grid.Col span={6}>
+                  <Stack gap="sm">
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        ステータス
+                      </Text>
+                      <Select
+                        value={newTask.status}
+                        onChange={(value) => handleTaskChange("status", value)}
+                        data={[
+                          { value: "planning", label: "計画中" },
+                          { value: "in_progress", label: "進行中" },
+                          { value: "completed", label: "完了" },
+                          { value: "archived", label: "アーカイブ" },
+                        ]}
+                        allowDeselect={false}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${
+                              newTask.status === "completed"
+                                ? theme.colors.green[5]
+                                : newTask.status === "in_progress"
+                                  ? theme.colors.blue[5]
+                                  : newTask.status === "planning"
+                                    ? theme.colors.yellow[5]
+                                    : theme.colors.gray[5]
+                            }`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        優先度
+                      </Text>
+                      <Select
+                        value={newTask.priority}
+                        onChange={(value) =>
+                          handleTaskChange("priority", value)
+                        }
+                        data={[
+                          { value: "low", label: "低" },
+                          { value: "medium", label: "中" },
+                          { value: "high", label: "高" },
+                        ]}
+                        allowDeselect={false}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${
+                              newTask.priority === "high"
+                                ? theme.colors.red[5]
+                                : newTask.priority === "medium"
+                                  ? theme.colors.yellow[5]
+                                  : theme.colors.green[5]
+                            }`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        担当者
+                      </Text>
+                      <Group gap="xs">
+                        <Avatar size="sm" radius="xl">
+                          {newTask.assigneeId ? newTask.assigneeId[0] : "?"}
+                        </Avatar>
+                        <TextInput
+                          value={newTask.assigneeId}
+                          onChange={(e) =>
+                            handleTaskChange("assigneeId", e.target.value)
+                          }
+                          size="sm"
+                          style={{ flex: 1 }}
+                          styles={(theme) => ({
+                            input: {
+                              borderLeft: `4px solid ${theme.colors.violet[5]}`,
+                              paddingLeft: theme.spacing.sm,
+                            },
+                          })}
+                        />
+                      </Group>
+                    </div>
+                  </Stack>
+                </Grid.Col>
+
+                <Grid.Col span={6}>
+                  <Stack gap="sm">
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        期限日
+                      </Text>
+                      <TextInput
+                        type="date"
+                        value={
+                          typeof newTask.dueDate === "string"
+                            ? newTask.dueDate
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleTaskChange("dueDate", e.target.value)
+                        }
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.blue[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+
+                    <div>
+                      <Text size="sm" c="dimmed" mb={4}>
+                        進捗率（%）
+                      </Text>
+                      <NumberInput
+                        value={newTask.progress}
+                        onChange={(value) =>
+                          handleTaskChange(
+                            "progress",
+                            typeof value === "number" ? value : 0
+                          )
+                        }
+                        min={0}
+                        max={100}
+                        styles={(theme) => ({
+                          input: {
+                            borderLeft: `4px solid ${theme.colors.cyan[5]}`,
+                            paddingLeft: theme.spacing.sm,
+                          },
+                        })}
+                      />
+                    </div>
+                  </Stack>
+                </Grid.Col>
+              </Grid>
+
+              <Divider />
+
+              {/* タグ */}
+              <div>
+                <Text size="sm" c="dimmed" mb={4}>
+                  タグ
+                </Text>
+                <TextInput
+                  value={newTask.tags?.join(", ") || ""}
+                  onChange={(e) =>
+                    handleTaskChange(
+                      "tags",
+                      e.target.value.split(",").map((tag) => tag.trim())
+                    )
+                  }
+                  placeholder="カンマ区切りでタグを入力"
+                  styles={(theme) => ({
+                    input: {
+                      borderLeft: `4px solid ${theme.colors.teal[5]}`,
+                      paddingLeft: theme.spacing.sm,
+                    },
+                  })}
+                />
+              </div>
+
+              <Divider />
+
+              {/* モーダルフッター */}
+              <Group justify="space-between">
+                <Button
+                  variant="light"
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                  onClick={() => setIsDeleteTaskModalOpen(true)}
+                >
+                  タスクを削除
+                </Button>
+                <Group>
+                  <Button
+                    variant="default"
+                    onClick={() => setSelectedTask(null)}
+                  >
+                    キャンセル
+                  </Button>
+                  <Button onClick={() => setSelectedTask(null)}>保存</Button>
+                </Group>
+              </Group>
+            </Stack>
+          )}
+        </Modal>
+
+        {/* タスク削除確認モーダル */}
+        <Modal
+          opened={isDeleteTaskModalOpen}
+          onClose={() => setIsDeleteTaskModalOpen(false)}
+          title="タスクの削除"
+          centered
+          size="md"
+        >
+          <Stack gap="md">
+            <Group gap="xs">
+              <ThemeIcon color="red" size="lg" radius="xl">
+                <IconAlertTriangle size={20} />
+              </ThemeIcon>
+              <Text fw={500} size="lg">
+                このタスクを削除しますか？
+              </Text>
+            </Group>
+
+            <Text color="dimmed">
+              この操作は取り消せません。タスク「{newTask?.title}
+              」が完全に削除されます。
             </Text>
+
+            <Divider my="sm" />
+
+            <Group justify="right" gap="sm">
+              <Button
+                variant="default"
+                onClick={() => setIsDeleteTaskModalOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                color="red"
+                onClick={() => {
+                  if (selectedTask) {
+                    handleDelete(selectedTask.id);
+                    setIsDeleteTaskModalOpen(false);
+                    setSelectedTask(null);
+                  }
+                }}
+              >
+                削除する
+              </Button>
+            </Group>
           </Stack>
-        </Center>
-      </Container>
+        </Modal>
+      </>
     );
-  }
+  };
 
   if (error) {
     return (
@@ -277,6 +587,7 @@ export const Today = () => {
                         transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         cursor: "pointer",
                       }}
+                      onClick={() => setSelectedTask(task)}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "translateY(-4px)";
                         e.currentTarget.style.boxShadow =
@@ -385,6 +696,7 @@ export const Today = () => {
             </ScrollArea>
           </Box>
         </Stack>
+        {renderTaskModal()}
       </Container>
     </Box>
   );
