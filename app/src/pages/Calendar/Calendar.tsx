@@ -185,7 +185,13 @@ export const Calendar = () => {
           ? undefined
           : "var(--mantine-color-gray-0)",
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
+        alignItems: "center",
+        cursor: "pointer",
+      }}
+      onClick={() => {
+        setSelectedDate(day.date);
+        setCurrentView("day");
       }}
     >
       {isToday(day.date) ? (
