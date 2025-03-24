@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { Task, CreateTaskInput, UpdateTaskInput } from "../types/task";
+import {
+  Task,
+  CreateTaskInput,
+  UpdateTaskInput,
+  TaskStatus,
+  TaskPriority,
+} from "../types/task";
 
 interface TasksState {
   tasks: Task[];
@@ -257,6 +263,7 @@ const mockTasks: Task[] = [
   },
 ];
 
+export type { TaskStatus, TaskPriority };
 export const useTasksStore = create<TasksState>((set) => ({
   tasks: [],
   isLoading: false,
