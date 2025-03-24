@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useProjectsStore } from "../../features/projects/store/projects";
+import { useTasksStore } from "../../features/tasks/store/tasks";
 import {
   Container,
   Title,
@@ -21,6 +22,7 @@ import {
   Divider,
   TextInput,
   NumberInput,
+  Textarea,
 } from "@mantine/core";
 import {
   IconEdit,
@@ -42,16 +44,15 @@ import { useState, useEffect } from "react";
 import {
   Task,
   TaskStatus,
-  Priority,
+  TaskPriority,
   CreateTaskInput,
-  getTasksByProjectId,
-  updateTask,
-} from "../../features/tasks/mocks/tasks";
+} from "../../features/tasks/types/task";
 
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, deleteProject } = useProjectsStore();
+  const { projects, deleteProject, updateProject } = useProjectsStore();
+  const { tasks, updateTask } = useTasksStore();
   const project = projects.find((project) => project.id === id);
   const [activeTab, setActiveTab] = useState<string | null>("details");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -63,36 +64,37 @@ const ProjectDetail = () => {
   const [newTask, setNewTask] = useState<CreateTaskInput>({
     title: "",
     description: "",
-    status: TaskStatus.TODO,
-    priority: Priority.MEDIUM,
+    status: "planning",
+    priority: "medium",
     projectId: id || "",
     assigneeId: "",
-    dueDate: "",
-    startDate: "",
-    estimatedHours: 0,
     tags: [],
+    progress: 0,
+    dueDate: new Date().toISOString(),
   });
 
-  // プロジェクトのタスク完了率を計算
-  const calculateProjectProgress = () => {
-    if (!id) return 0;
-
-    const tasks = getTasksByProjectId(id);
+  // プロジェクトの進捗度を計算する関数
+  const calculateProjectProgress = (tasks: Task[]): number => {
     if (tasks.length === 0) return 0;
-
     const completedTasks = tasks.filter(
-      (task) => task.status === TaskStatus.DONE
+      (task) => task.status === "completed" || task.status === "archived"
     ).length;
-    const progressPercentage = Math.round(
-      (completedTasks / tasks.length) * 100
-    );
+    return Math.round((completedTasks / tasks.length) * 100);
+  };
 
-    return progressPercentage;
+  // プロジェクトの進捗度を更新する関数
+  const updateProjectProgress = () => {
+    if (!project) return;
+    const projectTasks = tasks.filter((task) => task.projectId === project.id);
+    const progress = calculateProjectProgress(projectTasks);
+    updateProject(project.id, { progress });
   };
 
   // コンポーネントマウント時とタスク選択時に進捗状況を更新
   useEffect(() => {
-    const progress = calculateProjectProgress();
+    const progress = calculateProjectProgress(
+      tasks.filter((task: Task) => task.projectId === id)
+    );
     setProjectProgress(progress);
   }, [id, selectedTask]);
 
@@ -131,23 +133,22 @@ const ProjectDetail = () => {
     }
   };
 
-  const handleTaskChange = (field: string, value: any) => {
+  // タスクの更新処理
+  const handleTaskChange = async (field: string, value: any) => {
     if (!selectedTask) return;
 
     const updatedTask = { ...selectedTask, [field]: value };
     setNewTask(updatedTask);
 
-    // 変更を保存
     try {
-      updateTask(updatedTask);
+      await updateTask(selectedTask.id, updatedTask);
 
-      // タスクのステータスが変更された場合は進捗状況を更新
+      // タスクのステータスが変更された場合は進捗度を更新
       if (field === "status") {
-        const progress = calculateProjectProgress();
-        setProjectProgress(progress);
+        updateProjectProgress();
       }
     } catch (error) {
-      console.error("タスクの更新に失敗しました", error);
+      console.error("タスクの更新に失敗しました:", error);
     }
   };
 
@@ -164,14 +165,13 @@ const ProjectDetail = () => {
       setNewTask({
         title: "",
         description: "",
-        status: TaskStatus.TODO,
-        priority: Priority.MEDIUM,
+        status: "planning",
+        priority: "medium",
         projectId: id || "",
         assigneeId: "",
-        dueDate: "",
-        startDate: "",
-        estimatedHours: 0,
         tags: [],
+        progress: 0,
+        dueDate: new Date().toISOString(),
       });
     } catch (error) {
       console.error("タスクの作成に失敗しました:", error);
@@ -192,16 +192,17 @@ const ProjectDetail = () => {
       setNewTask({
         title: "",
         description: "",
-        status: TaskStatus.TODO,
-        priority: Priority.MEDIUM,
+        status: "planning",
+        priority: "medium",
         projectId: id || "",
         assigneeId: "",
-        dueDate: "",
-        startDate: "",
-        estimatedHours: 0,
         tags: [],
+        progress: 0,
+        dueDate: new Date().toISOString(),
       });
-      const progress = calculateProjectProgress();
+      const progress = calculateProjectProgress(
+        tasks.filter((task: Task) => task.projectId === id)
+      );
       setProjectProgress(progress);
     } catch (error) {
       notifications.show({
@@ -393,13 +394,7 @@ const ProjectDetail = () => {
                 onChange={(e) => handleTaskChange("title", e.target.value)}
                 variant="unstyled"
                 size="lg"
-                style={{ fontWeight: 500 }}
-                styles={(theme) => ({
-                  input: {
-                    borderLeft: `4px solid ${theme.colors.blue[5]}`,
-                    paddingLeft: theme.spacing.sm,
-                  },
-                })}
+                placeholder="タスク名を入力"
               />
             )
           }
@@ -412,18 +407,13 @@ const ProjectDetail = () => {
                 <Text size="sm" c="dimmed" mb="xs">
                   説明
                 </Text>
-                <TextInput
+                <Textarea
                   value={newTask.description || ""}
                   onChange={(e) =>
                     handleTaskChange("description", e.target.value)
                   }
                   placeholder="説明を入力"
-                  styles={(theme) => ({
-                    input: {
-                      borderLeft: `4px solid ${theme.colors.gray[5]}`,
-                      paddingLeft: theme.spacing.sm,
-                    },
-                  })}
+                  minRows={3}
                 />
               </div>
 
@@ -439,28 +429,16 @@ const ProjectDetail = () => {
                       </Text>
                       <Select
                         value={newTask.status}
-                        onChange={(value) => handleTaskChange("status", value)}
+                        onChange={(value) =>
+                          handleTaskChange("status", value as TaskStatus)
+                        }
                         data={[
-                          { value: TaskStatus.TODO, label: "未着手" },
-                          { value: TaskStatus.IN_PROGRESS, label: "進行中" },
-                          { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
-                          { value: TaskStatus.DONE, label: "完了" },
+                          { value: "planning", label: "未着手" },
+                          { value: "in_progress", label: "進行中" },
+                          { value: "completed", label: "完了" },
+                          { value: "archived", label: "アーカイブ" },
                         ]}
                         allowDeselect={false}
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${
-                              newTask.status === TaskStatus.DONE
-                                ? theme.colors.green[5]
-                                : newTask.status === TaskStatus.IN_PROGRESS
-                                  ? theme.colors.blue[5]
-                                  : newTask.status === TaskStatus.IN_REVIEW
-                                    ? theme.colors.yellow[5]
-                                    : theme.colors.gray[5]
-                            }`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
                       />
                     </div>
 
@@ -471,26 +449,14 @@ const ProjectDetail = () => {
                       <Select
                         value={newTask.priority}
                         onChange={(value) =>
-                          handleTaskChange("priority", value)
+                          handleTaskChange("priority", value as TaskPriority)
                         }
                         data={[
-                          { value: Priority.LOW, label: "低" },
-                          { value: Priority.MEDIUM, label: "中" },
-                          { value: Priority.HIGH, label: "高" },
+                          { value: "low", label: "低" },
+                          { value: "medium", label: "中" },
+                          { value: "high", label: "高" },
                         ]}
                         allowDeselect={false}
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${
-                              newTask.priority === Priority.HIGH
-                                ? theme.colors.red[5]
-                                : newTask.priority === Priority.MEDIUM
-                                  ? theme.colors.yellow[5]
-                                  : theme.colors.green[5]
-                            }`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
                       />
                     </div>
 
@@ -502,19 +468,19 @@ const ProjectDetail = () => {
                         <Avatar size="sm" radius="xl">
                           {newTask.assigneeId ? newTask.assigneeId[0] : "?"}
                         </Avatar>
-                        <TextInput
+                        <Select
                           value={newTask.assigneeId}
-                          onChange={(e) =>
-                            handleTaskChange("assigneeId", e.target.value)
-                          }
+                          onChange={(value: string | null) => {
+                            if (value) {
+                              handleTaskChange("assigneeId", value);
+                            }
+                          }}
                           size="sm"
-                          style={{ flex: 1 }}
-                          styles={(theme) => ({
-                            input: {
-                              borderLeft: `4px solid ${theme.colors.violet[5]}`,
-                              paddingLeft: theme.spacing.sm,
-                            },
-                          })}
+                          data={[
+                            { value: "user1", label: "山田太郎" },
+                            { value: "user2", label: "鈴木花子" },
+                            { value: "user3", label: "佐藤一郎" },
+                          ]}
                         />
                       </Group>
                     </div>
@@ -529,86 +495,30 @@ const ProjectDetail = () => {
                       </Text>
                       <TextInput
                         type="date"
-                        value={
-                          typeof newTask.dueDate === "string"
-                            ? newTask.dueDate
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleTaskChange("dueDate", e.target.value)
-                        }
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${theme.colors.blue[5]}`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
+                        value={newTask.dueDate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          if (e?.target?.value) {
+                            handleTaskChange("dueDate", e.target.value);
+                          }
+                        }}
                       />
                     </div>
 
                     <div>
                       <Text size="sm" c="dimmed" mb={4}>
-                        開始日
-                      </Text>
-                      <TextInput
-                        type="date"
-                        value={
-                          typeof newTask.startDate === "string"
-                            ? newTask.startDate
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleTaskChange("startDate", e.target.value)
-                        }
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${theme.colors.indigo[5]}`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
-                      />
-                    </div>
-
-                    <div>
-                      <Text size="sm" c="dimmed" mb={4}>
-                        見積時間（時間）
+                        進捗率
                       </Text>
                       <NumberInput
-                        value={
-                          typeof newTask.estimatedHours === "number"
-                            ? newTask.estimatedHours
-                            : 0
-                        }
+                        value={newTask.progress}
                         onChange={(value) =>
                           handleTaskChange(
-                            "estimatedHours",
+                            "progress",
                             typeof value === "number" ? value : 0
                           )
                         }
                         min={0}
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${theme.colors.orange[5]}`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
-                      />
-                    </div>
-
-                    <div>
-                      <Text size="sm" c="dimmed" mb={4}>
-                        実績時間（時間）
-                      </Text>
-                      <NumberInput
-                        value={0}
-                        onChange={() => {}}
-                        min={0}
-                        styles={(theme) => ({
-                          input: {
-                            borderLeft: `4px solid ${theme.colors.cyan[5]}`,
-                            paddingLeft: theme.spacing.sm,
-                          },
-                        })}
+                        max={100}
+                        label="進捗率"
                       />
                     </div>
                   </Stack>
@@ -631,12 +541,6 @@ const ProjectDetail = () => {
                     )
                   }
                   placeholder="カンマ区切りでタグを入力"
-                  styles={(theme) => ({
-                    input: {
-                      borderLeft: `4px solid ${theme.colors.teal[5]}`,
-                      paddingLeft: theme.spacing.sm,
-                    },
-                  })}
                 />
               </div>
 
@@ -709,15 +613,14 @@ const ProjectDetail = () => {
   };
 
   const renderTaskList = () => {
-    const tasks = getTasksByProjectId(id);
-    console.log("Current Project ID:", id);
-    console.log("Tasks:", tasks);
-
     // ステータスでフィルタリング
     const filteredTasks =
       statusFilter === "all"
-        ? tasks
-        : tasks.filter((task) => task.status === statusFilter);
+        ? tasks.filter((task: Task) => task.projectId === id)
+        : tasks.filter(
+            (task: Task) =>
+              task.projectId === id && task.status === statusFilter
+          );
 
     return (
       <Card withBorder>
@@ -732,10 +635,10 @@ const ProjectDetail = () => {
               placeholder="ステータスでフィルター"
               data={[
                 { value: "all", label: "すべて" },
-                { value: TaskStatus.TODO, label: "未着手" },
-                { value: TaskStatus.IN_PROGRESS, label: "進行中" },
-                { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
-                { value: TaskStatus.DONE, label: "完了" },
+                { value: "planning", label: "計画中" },
+                { value: "in_progress", label: "進行中" },
+                { value: "completed", label: "完了" },
+                { value: "archived", label: "アーカイブ" },
               ]}
               value={statusFilter}
               onChange={(value) => value && setStatusFilter(value)}
@@ -749,14 +652,13 @@ const ProjectDetail = () => {
                 setNewTask({
                   title: "",
                   description: "",
-                  status: TaskStatus.TODO,
-                  priority: Priority.MEDIUM,
+                  status: "planning",
+                  priority: "medium",
                   projectId: id || "",
                   assigneeId: "",
-                  dueDate: "",
-                  startDate: "",
-                  estimatedHours: 0,
                   tags: [],
+                  progress: 0,
+                  dueDate: new Date().toISOString(),
                 });
                 setIsAddTaskModalOpen(true);
               }}
@@ -798,16 +700,16 @@ const ProjectDetail = () => {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {filteredTasks.map((task) => (
+              {filteredTasks.map((task: Task) => (
                 <Table.Tr key={task.id} style={{ cursor: "pointer" }}>
                   <Table.Td onClick={() => setSelectedTask(task)}>
                     <Group gap="xs">
                       <Text size="sm" fw={500}>
                         {task.title}
                       </Text>
-                      {task.tags.length > 0 && (
+                      {task.tags && task.tags.length > 0 && (
                         <Group gap={4}>
-                          {task.tags.map((tag) => (
+                          {task.tags.map((tag: string) => (
                             <Badge key={tag} size="xs" variant="light">
                               {tag}
                             </Badge>
@@ -824,37 +726,37 @@ const ProjectDetail = () => {
                   <Table.Td onClick={() => setSelectedTask(task)}>
                     <Badge
                       color={
-                        task.status === TaskStatus.DONE
+                        task.status === "completed"
                           ? "green"
-                          : task.status === TaskStatus.IN_PROGRESS
+                          : task.status === "in_progress"
                             ? "blue"
-                            : task.status === TaskStatus.IN_REVIEW
-                              ? "yellow"
+                            : task.status === "archived"
+                              ? "gray"
                               : "gray"
                       }
                     >
-                      {task.status === TaskStatus.DONE
+                      {task.status === "completed"
                         ? "完了"
-                        : task.status === TaskStatus.IN_PROGRESS
+                        : task.status === "in_progress"
                           ? "進行中"
-                          : task.status === TaskStatus.IN_REVIEW
-                            ? "レビュー中"
+                          : task.status === "archived"
+                            ? "アーカイブ"
                             : "未着手"}
                     </Badge>
                   </Table.Td>
                   <Table.Td onClick={() => setSelectedTask(task)}>
                     <Badge
                       color={
-                        task.priority === Priority.HIGH
+                        task.priority === "high"
                           ? "red"
-                          : task.priority === Priority.MEDIUM
+                          : task.priority === "medium"
                             ? "yellow"
                             : "green"
                       }
                     >
-                      {task.priority === Priority.HIGH
+                      {task.priority === "high"
                         ? "高"
-                        : task.priority === Priority.MEDIUM
+                        : task.priority === "medium"
                           ? "中"
                           : "低"}
                     </Badge>
@@ -894,9 +796,8 @@ const ProjectDetail = () => {
                           projectId: task.projectId,
                           assigneeId: task.assigneeId,
                           dueDate: task.dueDate || "",
-                          startDate: task.startDate || "",
-                          estimatedHours: task.estimatedHours,
-                          tags: task.tags,
+                          tags: task.tags || [],
+                          progress: task.progress || 0,
                         });
                         handleDeleteTask();
                       }}
@@ -1077,26 +978,12 @@ const ProjectDetail = () => {
                       setNewTask({ ...newTask, status: value as TaskStatus })
                     }
                     data={[
-                      { value: TaskStatus.TODO, label: "未着手" },
-                      { value: TaskStatus.IN_PROGRESS, label: "進行中" },
-                      { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
-                      { value: TaskStatus.DONE, label: "完了" },
+                      { value: "planning", label: "計画中" },
+                      { value: "in_progress", label: "進行中" },
+                      { value: "completed", label: "完了" },
+                      { value: "archived", label: "アーカイブ" },
                     ]}
                     allowDeselect={false}
-                    styles={(theme) => ({
-                      input: {
-                        borderLeft: `4px solid ${
-                          newTask.status === TaskStatus.DONE
-                            ? theme.colors.green[5]
-                            : newTask.status === TaskStatus.IN_PROGRESS
-                              ? theme.colors.blue[5]
-                              : newTask.status === TaskStatus.IN_REVIEW
-                                ? theme.colors.yellow[5]
-                                : theme.colors.gray[5]
-                        }`,
-                        paddingLeft: theme.spacing.sm,
-                      },
-                    })}
                   />
                 </div>
 
@@ -1107,24 +994,26 @@ const ProjectDetail = () => {
                   <Select
                     value={newTask.priority}
                     onChange={(value) =>
-                      setNewTask({ ...newTask, priority: value as Priority })
+                      setNewTask({
+                        ...newTask,
+                        priority: value as TaskPriority,
+                      })
                     }
                     data={[
-                      { value: Priority.LOW, label: "低" },
-                      { value: Priority.MEDIUM, label: "中" },
-                      { value: Priority.HIGH, label: "高" },
+                      { value: "low", label: "低" },
+                      { value: "medium", label: "中" },
+                      { value: "high", label: "高" },
                     ]}
                     allowDeselect={false}
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${
-                          newTask.priority === Priority.HIGH
+                          newTask.priority === "high"
                             ? theme.colors.red[5]
-                            : newTask.priority === Priority.MEDIUM
+                            : newTask.priority === "medium"
                               ? theme.colors.yellow[5]
                               : theme.colors.green[5]
                         }`,
-                        paddingLeft: theme.spacing.sm,
                       },
                     })}
                   />
@@ -1138,19 +1027,19 @@ const ProjectDetail = () => {
                     <Avatar size="sm" radius="xl">
                       {newTask.assigneeId ? newTask.assigneeId[0] : "?"}
                     </Avatar>
-                    <TextInput
+                    <Select
                       value={newTask.assigneeId}
-                      onChange={(e) =>
-                        setNewTask({ ...newTask, assigneeId: e.target.value })
-                      }
+                      onChange={(value: string | null) => {
+                        if (value) {
+                          handleTaskChange("assigneeId", value);
+                        }
+                      }}
                       size="sm"
-                      style={{ flex: 1 }}
-                      styles={(theme) => ({
-                        input: {
-                          borderLeft: `4px solid ${theme.colors.violet[5]}`,
-                          paddingLeft: theme.spacing.sm,
-                        },
-                      })}
+                      data={[
+                        { value: "user1", label: "山田太郎" },
+                        { value: "user2", label: "鈴木花子" },
+                        { value: "user3", label: "佐藤一郎" },
+                      ]}
                     />
                   </Group>
                 </div>
@@ -1165,78 +1054,29 @@ const ProjectDetail = () => {
                   </Text>
                   <TextInput
                     type="date"
-                    value={
-                      typeof newTask.dueDate === "string" ? newTask.dueDate : ""
-                    }
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, dueDate: e.target.value })
-                    }
-                    styles={(theme) => ({
-                      input: {
-                        borderLeft: `4px solid ${theme.colors.blue[5]}`,
-                        paddingLeft: theme.spacing.sm,
-                      },
-                    })}
+                    value={newTask.dueDate}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      if (e?.target?.value) {
+                        handleTaskChange("dueDate", e.target.value);
+                      }
+                    }}
                   />
                 </div>
 
                 <div>
                   <Text size="sm" c="dimmed" mb={4}>
-                    開始日
-                  </Text>
-                  <TextInput
-                    type="date"
-                    value={
-                      typeof newTask.startDate === "string"
-                        ? newTask.startDate
-                        : ""
-                    }
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, startDate: e.target.value })
-                    }
-                    styles={(theme) => ({
-                      input: {
-                        borderLeft: `4px solid ${theme.colors.indigo[5]}`,
-                        paddingLeft: theme.spacing.sm,
-                      },
-                    })}
-                  />
-                </div>
-
-                <div>
-                  <Text size="sm" c="dimmed" mb={4}>
-                    見積時間（時間）
+                    進捗率
                   </Text>
                   <NumberInput
-                    value={
-                      typeof newTask.estimatedHours === "number"
-                        ? newTask.estimatedHours
-                        : 0
-                    }
+                    value={newTask.progress}
                     onChange={(value) =>
                       setNewTask({
                         ...newTask,
-                        estimatedHours: typeof value === "number" ? value : 0,
+                        progress: typeof value === "number" ? value : 0,
                       })
                     }
                     min={0}
-                    styles={(theme) => ({
-                      input: {
-                        borderLeft: `4px solid ${theme.colors.orange[5]}`,
-                        paddingLeft: theme.spacing.sm,
-                      },
-                    })}
-                  />
-                </div>
-
-                <div>
-                  <Text size="sm" c="dimmed" mb={4}>
-                    実績時間（時間）
-                  </Text>
-                  <NumberInput
-                    value={0}
-                    onChange={() => {}}
-                    min={0}
+                    max={100}
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${theme.colors.cyan[5]}`,

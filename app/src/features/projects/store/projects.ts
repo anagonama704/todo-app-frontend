@@ -4,6 +4,7 @@ import {
   CreateProjectInput,
   UpdateProjectInput,
 } from "../types/project";
+import { Task } from "../../tasks/types/task";
 
 interface ProjectsState {
   projects: Project[];
@@ -14,6 +15,15 @@ interface ProjectsState {
   updateProject: (id: string, input: UpdateProjectInput) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
 }
+
+// プロジェクトの進捗度を計算する関数
+const calculateProjectProgress = (tasks: Task[]): number => {
+  if (tasks.length === 0) return 0;
+  const completedTasks = tasks.filter(
+    (task) => task.status === "completed" || task.status === "archived"
+  ).length;
+  return Math.round((completedTasks / tasks.length) * 100);
+};
 
 export const useProjectsStore = create<ProjectsState>((set) => ({
   projects: [],
@@ -38,7 +48,7 @@ export const useProjectsStore = create<ProjectsState>((set) => ({
           ownerId: "user1",
           members: ["user1", "user2"],
           tags: ["web", "design"],
-          progress: 45,
+          progress: 0,
         },
         {
           id: "2",
@@ -252,7 +262,25 @@ export const useProjectsStore = create<ProjectsState>((set) => ({
           progress: 20,
         },
       ];
-      set({ projects: mockProjects });
+
+      // タスクのモックデータを取得
+      const mockTasks: Task[] = [
+        // ... タスクのモックデータ ...
+      ];
+
+      // 各プロジェクトにタスクを割り当て、進捗度を計算
+      const projectsWithTasks = mockProjects.map((project) => {
+        const projectTasks = mockTasks.filter(
+          (task) => task.projectId === project.id
+        );
+        return {
+          ...project,
+          tasks: projectTasks,
+          progress: calculateProjectProgress(projectTasks),
+        };
+      });
+
+      set({ projects: projectsWithTasks });
     } catch (error) {
       set({ error: "プロジェクトの取得に失敗しました" });
     } finally {

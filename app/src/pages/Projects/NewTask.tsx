@@ -19,27 +19,27 @@ import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { IconCheck, IconArrowLeft } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
-import {
-  createTask,
-  CreateTaskInput,
-  TaskStatus,
-  Priority,
-} from "../../features/tasks/mocks/tasks";
+import { useTasksStore } from "../../features/tasks/store/tasks";
+import { CreateTaskInput } from "../../features/tasks/types/task";
 import "@mantine/dates/styles.css";
 
 const NewTask = () => {
   const { id: projectId } = useParams();
   const navigate = useNavigate();
   const { projects } = useProjectsStore();
+  const { createTask } = useTasksStore();
   const project = projects.find((p) => p.id === projectId);
 
   const [formData, setFormData] = useState<CreateTaskInput>({
     title: "",
     description: "",
     projectId: projectId || "",
-    status: TaskStatus.TODO,
-    priority: Priority.MEDIUM,
+    status: "planning",
+    priority: "medium",
+    assigneeId: "",
     tags: [],
+    progress: 0,
+    dueDate: new Date().toISOString(),
   });
 
   const [availableTags] = useState<string[]>(project?.tags || []);
@@ -60,17 +60,7 @@ const NewTask = () => {
     e.preventDefault();
 
     try {
-      const formattedData = {
-        ...formData,
-        startDate: formData.startDate
-          ? new Date(formData.startDate).toISOString()
-          : undefined,
-        dueDate: formData.dueDate
-          ? new Date(formData.dueDate).toISOString()
-          : undefined,
-      };
-
-      createTask(formattedData);
+      createTask(formData);
       notifications.show({
         title: "タスクを作成しました",
         message: "タスクが正常に作成されました",
@@ -141,10 +131,10 @@ const NewTask = () => {
                   <Select
                     label="ステータス"
                     data={[
-                      { value: TaskStatus.TODO, label: "未着手" },
-                      { value: TaskStatus.IN_PROGRESS, label: "進行中" },
-                      { value: TaskStatus.IN_REVIEW, label: "レビュー中" },
-                      { value: TaskStatus.DONE, label: "完了" },
+                      { value: "planning", label: "未着手" },
+                      { value: "in_progress", label: "進行中" },
+                      { value: "completed", label: "完了" },
+                      { value: "archived", label: "アーカイブ" },
                     ]}
                     value={formData.status}
                     onChange={(value) => handleChange("status", value)}
@@ -152,13 +142,13 @@ const NewTask = () => {
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${
-                          formData.status === TaskStatus.TODO
+                          formData.status === "planning"
                             ? theme.colors.gray[5]
-                            : formData.status === TaskStatus.IN_PROGRESS
+                            : formData.status === "in_progress"
                               ? theme.colors.blue[5]
-                              : formData.status === TaskStatus.IN_REVIEW
-                                ? theme.colors.yellow[5]
-                                : theme.colors.green[5]
+                              : formData.status === "completed"
+                                ? theme.colors.green[5]
+                                : theme.colors.gray[5]
                         }`,
                         paddingLeft: theme.spacing.sm,
                       },
@@ -168,9 +158,9 @@ const NewTask = () => {
                   <Select
                     label="優先度"
                     data={[
-                      { value: Priority.LOW, label: "低" },
-                      { value: Priority.MEDIUM, label: "中" },
-                      { value: Priority.HIGH, label: "高" },
+                      { value: "low", label: "低" },
+                      { value: "medium", label: "中" },
+                      { value: "high", label: "高" },
                     ]}
                     value={formData.priority}
                     onChange={(value) => handleChange("priority", value)}
@@ -178,9 +168,9 @@ const NewTask = () => {
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${
-                          formData.priority === Priority.HIGH
+                          formData.priority === "high"
                             ? theme.colors.red[5]
-                            : formData.priority === Priority.MEDIUM
+                            : formData.priority === "medium"
                               ? theme.colors.yellow[5]
                               : theme.colors.green[5]
                         }`,
@@ -209,32 +199,6 @@ const NewTask = () => {
               <Card withBorder p="md" radius="md">
                 <Stack gap="md">
                   <DateInput
-                    label="開始日"
-                    placeholder="開始日を選択"
-                    value={
-                      formData.startDate ? new Date(formData.startDate) : null
-                    }
-                    onChange={(date) => handleChange("startDate", date)}
-                    clearable
-                    valueFormat="YYYY/MM/DD"
-                    locale="ja"
-                    styles={(theme) => ({
-                      input: {
-                        borderLeft: `4px solid ${theme.colors.indigo[5]}`,
-                        paddingLeft: theme.spacing.sm,
-                      },
-                      calendarHeader: {
-                        backgroundColor: theme.colors.blue[0],
-                      },
-                      day: {
-                        "&[data-selected]": {
-                          backgroundColor: theme.colors.blue[5],
-                        },
-                      },
-                    })}
-                  />
-
-                  <DateInput
                     label="期限日"
                     placeholder="期限日を選択"
                     value={formData.dueDate ? new Date(formData.dueDate) : null}
@@ -259,12 +223,12 @@ const NewTask = () => {
                   />
 
                   <NumberInput
-                    label="見積時間（時間）"
-                    placeholder="見積時間を入力"
+                    label="進捗率"
+                    placeholder="進捗率を入力"
                     min={0}
-                    step={0.5}
-                    value={formData.estimatedHours || undefined}
-                    onChange={(value) => handleChange("estimatedHours", value)}
+                    max={100}
+                    value={formData.progress}
+                    onChange={(value) => handleChange("progress", value)}
                     styles={(theme) => ({
                       input: {
                         borderLeft: `4px solid ${theme.colors.cyan[5]}`,
