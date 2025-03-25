@@ -1,12 +1,251 @@
-import { Title, Container } from "@mantine/core";
+import { useState } from "react";
+import {
+  Container,
+  Title,
+  Card,
+  Grid,
+  Text,
+  Group,
+  Stack,
+  Progress,
+  Badge,
+  Select,
+  Table,
+  ThemeIcon,
+} from "@mantine/core";
+import {
+  IconChartBar,
+  IconCheck,
+  IconClock,
+  IconAlertTriangle,
+  IconUsers,
+  IconTag,
+} from "@tabler/icons-react";
+import { useProjectsStore } from "../../features/projects/store/projects";
+import { useTasksStore } from "../../features/tasks/store/tasks";
 
-export const Reports = () => {
+const Reports = () => {
+  const { projects } = useProjectsStore();
+  const { tasks } = useTasksStore();
+  const [selectedProject, setSelectedProject] = useState<string>("all");
+
+  // プロジェクトの進捗状況を計算
+  const projectProgress = projects.map((project) => {
+    const projectTasks = tasks.filter((task) => task.projectId === project.id);
+    const completedTasks = projectTasks.filter(
+      (task) => task.status === "completed" || task.status === "archived"
+    ).length;
+    const progress =
+      projectTasks.length > 0
+        ? Math.round((completedTasks / projectTasks.length) * 100)
+        : 0;
+
+    return {
+      ...project,
+      progress,
+      totalTasks: projectTasks.length,
+      completedTasks,
+    };
+  });
+
+  // タスクの統計情報を計算
+  const taskStats = {
+    total: tasks.length,
+    completed: tasks.filter(
+      (task) => task.status === "completed" || task.status === "archived"
+    ).length,
+    inProgress: tasks.filter((task) => task.status === "in_progress").length,
+    planning: tasks.filter((task) => task.status === "planning").length,
+    highPriority: tasks.filter((task) => task.priority === "high").length,
+    mediumPriority: tasks.filter((task) => task.priority === "medium").length,
+    lowPriority: tasks.filter((task) => task.priority === "low").length,
+  };
+
+  // プロジェクトごとのタスク数を計算
+  const projectTaskCounts = projects.map((project) => ({
+    id: project.id,
+    title: project.title,
+    taskCount: tasks.filter((task) => task.projectId === project.id).length,
+  }));
+
+  // 担当者ごとのタスク数を計算
+  const assigneeTaskCounts = tasks.reduce(
+    (acc, task) => {
+      acc[task.assigneeId] = (acc[task.assigneeId] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  const renderProjectProgress = () => (
+    <Card withBorder>
+      <Group mb="md">
+        <ThemeIcon color="blue" size="lg" radius="md">
+          <IconChartBar size={20} />
+        </ThemeIcon>
+        <Title order={3}>プロジェクト進捗状況</Title>
+      </Group>
+
+      <Stack gap="md">
+        {projectProgress.map((project) => (
+          <div key={project.id}>
+            <Group justify="space-between" mb="xs">
+              <Text fw={500}>{project.title}</Text>
+              <Text size="sm" c="dimmed">
+                {project.completedTasks}/{project.totalTasks} タスク完了
+              </Text>
+            </Group>
+            <Progress
+              value={project.progress}
+              color={project.progress === 100 ? "green" : "blue"}
+              size="xl"
+              radius="xl"
+            />
+          </div>
+        ))}
+      </Stack>
+    </Card>
+  );
+
+  const renderTaskStats = () => (
+    <Card withBorder>
+      <Group mb="md">
+        <ThemeIcon color="green" size="lg" radius="md">
+          <IconCheck size={20} />
+        </ThemeIcon>
+        <Title order={3}>タスク統計</Title>
+      </Group>
+
+      <Grid>
+        <Grid.Col span={4}>
+          <Stack align="center" gap="xs">
+            <Text size="xl" fw={700}>
+              {taskStats.total}
+            </Text>
+            <Text size="sm" c="dimmed">
+              総タスク数
+            </Text>
+          </Stack>
+        </Grid.Col>
+        <Grid.Col span={4}>
+          <Stack align="center" gap="xs">
+            <Text size="xl" fw={700} c="green">
+              {taskStats.completed}
+            </Text>
+            <Text size="sm" c="dimmed">
+              完了タスク
+            </Text>
+          </Stack>
+        </Grid.Col>
+        <Grid.Col span={4}>
+          <Stack align="center" gap="xs">
+            <Text size="xl" fw={700} c="blue">
+              {taskStats.inProgress}
+            </Text>
+            <Text size="sm" c="dimmed">
+              進行中タスク
+            </Text>
+          </Stack>
+        </Grid.Col>
+      </Grid>
+    </Card>
+  );
+
+  const renderPriorityStats = () => (
+    <Card withBorder>
+      <Group mb="md">
+        <ThemeIcon color="red" size="lg" radius="md">
+          <IconAlertTriangle size={20} />
+        </ThemeIcon>
+        <Title order={3}>優先度別タスク数</Title>
+      </Group>
+
+      <Stack gap="md">
+        <div>
+          <Group justify="space-between" mb="xs">
+            <Text>高優先度</Text>
+            <Badge color="red">{taskStats.highPriority}</Badge>
+          </Group>
+          <Progress
+            value={(taskStats.highPriority / taskStats.total) * 100}
+            color="red"
+            size="xl"
+            radius="xl"
+          />
+        </div>
+        <div>
+          <Group justify="space-between" mb="xs">
+            <Text>中優先度</Text>
+            <Badge color="yellow">{taskStats.mediumPriority}</Badge>
+          </Group>
+          <Progress
+            value={(taskStats.mediumPriority / taskStats.total) * 100}
+            color="yellow"
+            size="xl"
+            radius="xl"
+          />
+        </div>
+        <div>
+          <Group justify="space-between" mb="xs">
+            <Text>低優先度</Text>
+            <Badge color="green">{taskStats.lowPriority}</Badge>
+          </Group>
+          <Progress
+            value={(taskStats.lowPriority / taskStats.total) * 100}
+            color="green"
+            size="xl"
+            radius="xl"
+          />
+        </div>
+      </Stack>
+    </Card>
+  );
+
+  const renderAssigneeStats = () => (
+    <Card withBorder>
+      <Group mb="md">
+        <ThemeIcon color="violet" size="lg" radius="md">
+          <IconUsers size={20} />
+        </ThemeIcon>
+        <Title order={3}>担当者別タスク数</Title>
+      </Group>
+
+      <Table>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>担当者</Table.Th>
+            <Table.Th>タスク数</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {Object.entries(assigneeTaskCounts).map(([assigneeId, count]) => (
+            <Table.Tr key={assigneeId}>
+              <Table.Td>{assigneeId}</Table.Td>
+              <Table.Td>{count}</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Card>
+  );
+
   return (
-    <Container p="md">
-      <Title order={2} size="h3" mb="md">
-        レポート
-      </Title>
-      {/* レポートの内容をここに実装 */}
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        <Title order={1}>レポート</Title>
+
+        <Grid>
+          <Grid.Col span={8}>{renderProjectProgress()}</Grid.Col>
+          <Grid.Col span={4}>{renderTaskStats()}</Grid.Col>
+        </Grid>
+
+        <Grid>
+          <Grid.Col span={6}>{renderPriorityStats()}</Grid.Col>
+          <Grid.Col span={6}>{renderAssigneeStats()}</Grid.Col>
+        </Grid>
+      </Stack>
     </Container>
   );
 };
+
+export { Reports };
