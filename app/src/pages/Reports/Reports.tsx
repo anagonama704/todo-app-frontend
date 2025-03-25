@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Container,
   Title,
@@ -9,17 +8,14 @@ import {
   Stack,
   Progress,
   Badge,
-  Select,
   Table,
   ThemeIcon,
 } from "@mantine/core";
 import {
   IconChartBar,
   IconCheck,
-  IconClock,
   IconAlertTriangle,
   IconUsers,
-  IconTag,
 } from "@tabler/icons-react";
 import { useProjectsStore } from "../../features/projects/store/projects";
 import { useTasksStore } from "../../features/tasks/store/tasks";
@@ -56,13 +52,6 @@ const Reports = () => {
     inProgress: tasks.filter((task) => task.status === "in_progress").length,
     planning: tasks.filter((task) => task.status === "planning").length,
   };
-
-  // プロジェクトごとのタスク数を計算
-  const projectTaskCounts = projects.map((project) => ({
-    id: project.id,
-    title: project.title,
-    taskCount: tasks.filter((task) => task.projectId === project.id).length,
-  }));
 
   // 担当者ごとのタスク数を計算
   const assigneeTaskCounts = tasks.reduce(
