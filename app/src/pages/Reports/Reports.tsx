@@ -27,7 +27,6 @@ import { useTasksStore } from "../../features/tasks/store/tasks";
 const Reports = () => {
   const { projects } = useProjectsStore();
   const { tasks } = useTasksStore();
-  const [selectedProject, setSelectedProject] = useState<string>("all");
 
   // プロジェクトの進捗状況を計算
   const projectProgress = projects.map((project) => {
@@ -56,9 +55,6 @@ const Reports = () => {
     ).length,
     inProgress: tasks.filter((task) => task.status === "in_progress").length,
     planning: tasks.filter((task) => task.status === "planning").length,
-    highPriority: tasks.filter((task) => task.priority === "high").length,
-    mediumPriority: tasks.filter((task) => task.priority === "medium").length,
-    lowPriority: tasks.filter((task) => task.priority === "low").length,
   };
 
   // プロジェクトごとのタスク数を計算
@@ -77,9 +73,27 @@ const Reports = () => {
     {} as Record<string, number>
   );
 
+  // 優先度別のタスク数を計算
+  const priorityStats = tasks.reduce(
+    (acc, task) => {
+      acc[task.priority] = (acc[task.priority] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
   const renderProjectProgress = () => (
-    <Card withBorder>
-      <Group mb="md">
+    <Card withBorder h={400} style={{ overflow: "auto" }} pt={0}>
+      <Group
+        mb="md"
+        style={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "white",
+          zIndex: 1,
+          padding: "20px 0",
+        }}
+      >
         <ThemeIcon color="blue" size="lg" radius="md">
           <IconChartBar size={20} />
         </ThemeIcon>
@@ -163,11 +177,11 @@ const Reports = () => {
       <Stack gap="md">
         <div>
           <Group justify="space-between" mb="xs">
-            <Text>高優先度</Text>
-            <Badge color="red">{taskStats.highPriority}</Badge>
+            <Text>優先度高</Text>
+            <Badge color="red">{priorityStats.high || 0}</Badge>
           </Group>
           <Progress
-            value={(taskStats.highPriority / taskStats.total) * 100}
+            value={((priorityStats.high || 0) / taskStats.total) * 100}
             color="red"
             size="xl"
             radius="xl"
@@ -175,11 +189,11 @@ const Reports = () => {
         </div>
         <div>
           <Group justify="space-between" mb="xs">
-            <Text>中優先度</Text>
-            <Badge color="yellow">{taskStats.mediumPriority}</Badge>
+            <Text>優先度中</Text>
+            <Badge color="yellow">{priorityStats.medium || 0}</Badge>
           </Group>
           <Progress
-            value={(taskStats.mediumPriority / taskStats.total) * 100}
+            value={((priorityStats.medium || 0) / taskStats.total) * 100}
             color="yellow"
             size="xl"
             radius="xl"
@@ -187,11 +201,11 @@ const Reports = () => {
         </div>
         <div>
           <Group justify="space-between" mb="xs">
-            <Text>低優先度</Text>
-            <Badge color="green">{taskStats.lowPriority}</Badge>
+            <Text>優先度低</Text>
+            <Badge color="green">{priorityStats.low || 0}</Badge>
           </Group>
           <Progress
-            value={(taskStats.lowPriority / taskStats.total) * 100}
+            value={((priorityStats.low || 0) / taskStats.total) * 100}
             color="green"
             size="xl"
             radius="xl"
@@ -202,8 +216,16 @@ const Reports = () => {
   );
 
   const renderAssigneeStats = () => (
-    <Card withBorder>
-      <Group mb="md">
+    <Card withBorder h={400} style={{ overflow: "auto" }} pt={0}>
+      <Group
+        style={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "white",
+          zIndex: 1,
+          padding: "20px 0 40px 0",
+        }}
+      >
         <ThemeIcon color="violet" size="lg" radius="md">
           <IconUsers size={20} />
         </ThemeIcon>
@@ -211,7 +233,14 @@ const Reports = () => {
       </Group>
 
       <Table>
-        <Table.Thead>
+        <Table.Thead
+          style={{
+            position: "sticky",
+            top: 70,
+            backgroundColor: "white",
+            zIndex: 1000,
+          }}
+        >
           <Table.Tr>
             <Table.Th>担当者</Table.Th>
             <Table.Th>タスク数</Table.Th>
