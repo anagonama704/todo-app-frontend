@@ -12,6 +12,7 @@ import {
   Button,
   Center,
   Paper,
+  ScrollArea,
 } from "@mantine/core";
 import {
   IconAlertTriangle,
@@ -80,67 +81,69 @@ export const Important = () => {
         <Title order={3}>高優先度タスク</Title>
       </Group>
 
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>タイトル</Table.Th>
-            <Table.Th>プロジェクト</Table.Th>
-            <Table.Th>担当者</Table.Th>
-            <Table.Th>期限</Table.Th>
-            <Table.Th>ステータス</Table.Th>
-            <Table.Th>操作</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {highPriorityTasks.map((task) => (
-            <Table.Tr key={task.id}>
-              <Table.Td>{task.title}</Table.Td>
-              <Table.Td>{task.projectId}</Table.Td>
-              <Table.Td>{task.assigneeId}</Table.Td>
-              <Table.Td>{formatDate(task.dueDate)}</Table.Td>
-              <Table.Td>
-                <Badge
-                  color={
-                    task.status === "completed" || task.status === "archived"
-                      ? "green"
-                      : task.status === "in_progress"
-                        ? "blue"
-                        : "gray"
-                  }
-                >
-                  {task.status === "completed"
-                    ? "完了"
-                    : task.status === "archived"
-                      ? "アーカイブ"
-                      : task.status === "in_progress"
-                        ? "進行中"
-                        : "未着手"}
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                <Group gap="xs">
-                  <Button
-                    variant="light"
-                    size="xs"
-                    color="green"
-                    leftSection={<IconCheck size={14} />}
-                  >
-                    完了
-                  </Button>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    color="gray"
-                    leftSection={<IconArchive size={14} />}
-                  >
-                    アーカイブ
-                  </Button>
-                </Group>
-              </Table.Td>
+      <ScrollArea h={200}>
+        <Table stickyHeader>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>タイトル</Table.Th>
+              <Table.Th>プロジェクト</Table.Th>
+              <Table.Th>担当者</Table.Th>
+              <Table.Th>期限</Table.Th>
+              <Table.Th>ステータス</Table.Th>
+              <Table.Th>操作</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {highPriorityTasks.map((task) => (
+              <Table.Tr key={task.id}>
+                <Table.Td>{task.title}</Table.Td>
+                <Table.Td>{task.projectId}</Table.Td>
+                <Table.Td>{task.assigneeId}</Table.Td>
+                <Table.Td>{formatDate(task.dueDate)}</Table.Td>
+                <Table.Td>
+                  <Badge
+                    color={
+                      task.status === "completed" || task.status === "archived"
+                        ? "green"
+                        : task.status === "in_progress"
+                          ? "blue"
+                          : "gray"
+                    }
+                  >
+                    {task.status === "completed"
+                      ? "完了"
+                      : task.status === "archived"
+                        ? "アーカイブ"
+                        : task.status === "in_progress"
+                          ? "進行中"
+                          : "未着手"}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <Button
+                      variant="light"
+                      size="xs"
+                      color="green"
+                      leftSection={<IconCheck size={14} />}
+                    >
+                      完了
+                    </Button>
+                    <Button
+                      variant="light"
+                      size="xs"
+                      color="gray"
+                      leftSection={<IconArchive size={14} />}
+                    >
+                      アーカイブ
+                    </Button>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </ScrollArea>
     </Card>
   );
 
@@ -153,67 +156,69 @@ export const Important = () => {
         <Title order={3}>期限切れが近いタスク</Title>
       </Group>
 
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>タイトル</Table.Th>
-            <Table.Th>プロジェクト</Table.Th>
-            <Table.Th>担当者</Table.Th>
-            <Table.Th>期限</Table.Th>
-            <Table.Th>ステータス</Table.Th>
-            <Table.Th>操作</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {upcomingDueTasks.map((task) => (
-            <Table.Tr key={task.id}>
-              <Table.Td>{task.title}</Table.Td>
-              <Table.Td>{task.projectId}</Table.Td>
-              <Table.Td>{task.assigneeId}</Table.Td>
-              <Table.Td>{formatDate(task.dueDate)}</Table.Td>
-              <Table.Td>
-                <Badge
-                  color={
-                    task.status === "completed" || task.status === "archived"
-                      ? "green"
-                      : task.status === "in_progress"
-                        ? "blue"
-                        : "gray"
-                  }
-                >
-                  {task.status === "completed"
-                    ? "完了"
-                    : task.status === "archived"
-                      ? "アーカイブ"
-                      : task.status === "in_progress"
-                        ? "進行中"
-                        : "未着手"}
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                <Group gap="xs">
-                  <Button
-                    variant="light"
-                    size="xs"
-                    color="green"
-                    leftSection={<IconCheck size={14} />}
-                  >
-                    完了
-                  </Button>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    color="gray"
-                    leftSection={<IconArchive size={14} />}
-                  >
-                    アーカイブ
-                  </Button>
-                </Group>
-              </Table.Td>
+      <ScrollArea h={200}>
+        <Table stickyHeader>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>タイトル</Table.Th>
+              <Table.Th>プロジェクト</Table.Th>
+              <Table.Th>担当者</Table.Th>
+              <Table.Th>期限</Table.Th>
+              <Table.Th>ステータス</Table.Th>
+              <Table.Th>操作</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {upcomingDueTasks.map((task) => (
+              <Table.Tr key={task.id}>
+                <Table.Td>{task.title}</Table.Td>
+                <Table.Td>{task.projectId}</Table.Td>
+                <Table.Td>{task.assigneeId}</Table.Td>
+                <Table.Td>{formatDate(task.dueDate)}</Table.Td>
+                <Table.Td>
+                  <Badge
+                    color={
+                      task.status === "completed" || task.status === "archived"
+                        ? "green"
+                        : task.status === "in_progress"
+                          ? "blue"
+                          : "gray"
+                    }
+                  >
+                    {task.status === "completed"
+                      ? "完了"
+                      : task.status === "archived"
+                        ? "アーカイブ"
+                        : task.status === "in_progress"
+                          ? "進行中"
+                          : "未着手"}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <Button
+                      variant="light"
+                      size="xs"
+                      color="green"
+                      leftSection={<IconCheck size={14} />}
+                    >
+                      完了
+                    </Button>
+                    <Button
+                      variant="light"
+                      size="xs"
+                      color="gray"
+                      leftSection={<IconArchive size={14} />}
+                    >
+                      アーカイブ
+                    </Button>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </ScrollArea>
     </Card>
   );
 
