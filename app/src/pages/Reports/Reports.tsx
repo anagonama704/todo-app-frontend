@@ -248,9 +248,18 @@ const Reports = () => {
   );
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl">
       <Stack gap="xl">
-        <Title order={1}>レポート</Title>
+        <Group justify="space-between">
+          <Stack gap={4}>
+            <Title order={1} size="h2" fw={700}>
+              レポート
+            </Title>
+            <Text size="sm" c="dimmed">
+              プロジェクトの進捗状況やタスクの統計情報を確認できます
+            </Text>
+          </Stack>
+        </Group>
 
         <Grid>
           <Grid.Col span={8}>{renderProjectProgress()}</Grid.Col>
