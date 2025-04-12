@@ -223,9 +223,11 @@ export const Important = () => {
   );
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="xl">
-        <Title order={1}>重要タスク</Title>
+    <Container size="xl" style={{ overflow: "hidden" }}>
+      <Stack gap="4">
+        <Title order={1} size="h2" fw={700}>
+          重要タスク
+        </Title>
 
         <Grid>
           <Grid.Col span={12}>{renderHighPriorityTasks()}</Grid.Col>
