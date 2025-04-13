@@ -14,7 +14,6 @@ import {
   Flex,
   Badge,
   Timeline,
-  useMantineTheme,
   useMantineColorScheme,
 } from "@mantine/core";
 import {
