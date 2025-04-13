@@ -28,7 +28,6 @@ type ViewType = "month" | "week" | "day";
 export const Calendar = () => {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === "dark";
-  const theme = useMantineTheme();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<ViewType>("month");
 
