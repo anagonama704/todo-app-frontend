@@ -14,6 +14,8 @@ import {
   Flex,
   Badge,
   Timeline,
+  useMantineTheme,
+  useMantineColorScheme,
 } from "@mantine/core";
 import {
   IconChevronLeft,
@@ -24,6 +26,8 @@ import {
 type ViewType = "month" | "week" | "day";
 
 export const Calendar = () => {
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === "dark";
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<ViewType>("month");
 
@@ -88,7 +92,7 @@ export const Calendar = () => {
     }
 
     // 次月の日付を追加
-    const endPadding = 42 - days.length; // 6週間分のグリッド (6 * 7 = 42)
+    const endPadding = 35 - days.length; // 5週間分のグリッド (5 * 7 = 35)
     for (let i = 1; i <= endPadding; i++) {
       const nextDate = new Date(lastDay);
       nextDate.setDate(nextDate.getDate() + i);
@@ -179,11 +183,20 @@ export const Calendar = () => {
       p="xs"
       style={{
         minHeight: currentView === "month" ? "100px" : "auto",
-        borderRight: "1px solid var(--mantine-color-gray-2)",
-        borderBottom: "1px solid var(--mantine-color-gray-2)",
+        borderRight: isDark
+          ? "1px solid var(--mantine-color-dark-4)"
+          : "1px solid var(--mantine-color-gray-2)",
+        borderLeft: isDark
+          ? "1px solid var(--mantine-color-dark-4)"
+          : "1px solid var(--mantine-color-gray-2)",
+        borderBottom: isDark
+          ? "1px solid var(--mantine-color-dark-4)"
+          : "1px solid var(--mantine-color-gray-2)",
         backgroundColor: day.isCurrentMonth
           ? undefined
-          : "var(--mantine-color-gray-0)",
+          : isDark
+            ? "var(--mantine-color-dark-6)"
+            : "var(--mantine-color-gray-0)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -246,7 +259,9 @@ export const Calendar = () => {
             p="xs"
             style={{
               textAlign: "center",
-              borderBottom: "1px solid var(--mantine-color-gray-3)",
+              borderBottom: isDark
+                ? "1px solid var(--mantine-color-dark-4)"
+                : "1px solid var(--mantine-color-gray-3)",
             }}
           >
             <Text
@@ -277,7 +292,7 @@ export const Calendar = () => {
             p="xs"
             style={{
               textAlign: "center",
-              borderBottom: "1px solid var(--mantine-color-gray-3)",
+              borderBottom: "1px solid var(--mantine-color-dark-4)",
             }}
           >
             <Text
@@ -308,8 +323,8 @@ export const Calendar = () => {
                     p="xs"
                     style={{
                       minHeight: "60px",
-                      borderRight: "1px solid var(--mantine-color-gray-2)",
-                      borderBottom: "1px solid var(--mantine-color-gray-2)",
+                      borderRight: "1px solid var(--mantine-color-dark-4)",
+                      borderBottom: "1px solid var(--mantine-color-dark-4)",
                     }}
                   >
                     {index === 0 && (
@@ -334,7 +349,6 @@ export const Calendar = () => {
         p="xs"
         style={{
           textAlign: "center",
-          borderBottom: "1px solid var(--mantine-color-gray-3)",
         }}
       >
         <Text
@@ -363,7 +377,10 @@ export const Calendar = () => {
             <Box
               style={{
                 minHeight: "60px",
-                borderBottom: "1px solid var(--mantine-color-gray-2)",
+                borderBottom: "1px solid var(--mantine-color-dark-4)",
+                "&:last-child": {
+                  borderBottom: "none",
+                },
               }}
             />
           </Timeline.Item>

@@ -46,8 +46,9 @@ export const Header = () => {
     <Box
       component="header"
       w="100%"
-      py={isMobile ? "xs" : "md"}
+      py="xs"
       px={isMobile ? "xs" : "xl"}
+      ta="center"
     >
       <NotificationModal
         opened={isNotificationModalOpen}
