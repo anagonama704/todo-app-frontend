@@ -18,18 +18,12 @@ export const Home = () => {
   return (
     <MantineAppShell
       header={{ height: 56 }}
-      // navbar={{ width: 300, breakpoint: "sm" }}
       navbar={{
         width: { base: 250 },
         breakpoint: "sm",
         collapsed: { mobile: !opened },
       }}
       padding="md"
-      styles={{
-        navbar: {
-          borderRight: "1px solid var(--mantine-color-gray-3)",
-        },
-      }}
     >
       <MantineAppShell.Header pr="md" pl="md">
         <Flex justify="space-between" align="center" w="100%">

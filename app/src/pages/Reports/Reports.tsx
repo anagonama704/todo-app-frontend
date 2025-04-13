@@ -78,7 +78,6 @@ const Reports = () => {
         style={{
           position: "sticky",
           top: 0,
-          backgroundColor: "white",
           zIndex: 1,
           padding: "20px 0",
         }}
@@ -210,7 +209,6 @@ const Reports = () => {
         style={{
           position: "sticky",
           top: 0,
-          backgroundColor: "white",
           zIndex: 1,
           padding: "20px 0 40px 0",
         }}
@@ -226,7 +224,6 @@ const Reports = () => {
           style={{
             position: "sticky",
             top: 70,
-            backgroundColor: "white",
             zIndex: 1000,
           }}
         >
