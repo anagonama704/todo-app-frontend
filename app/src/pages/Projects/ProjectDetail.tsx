@@ -613,204 +613,104 @@ const ProjectDetail = () => {
   };
 
   const renderTaskList = () => {
-    // ステータスでフィルタリング
+    const projectTasks = tasks.filter((task) => task.projectId === id);
     const filteredTasks =
       statusFilter === "all"
-        ? tasks.filter((task: Task) => task.projectId === id)
-        : tasks.filter(
-            (task: Task) =>
-              task.projectId === id && task.status === statusFilter
-          );
+        ? projectTasks
+        : projectTasks.filter((task) => task.status === statusFilter);
 
     return (
-      <Card withBorder>
-        <Group justify="space-between" mb="md">
-          <Group>
-            <IconList size={20} style={{ color: "gray" }} />
-            <Text fw={500}>タスク一覧</Text>
-          </Group>
-          <Group>
-            <Select
-              size="xs"
-              placeholder="ステータスでフィルター"
-              data={[
-                { value: "all", label: "すべて" },
-                { value: "planning", label: "計画中" },
-                { value: "in_progress", label: "進行中" },
-                { value: "completed", label: "完了" },
-                { value: "archived", label: "アーカイブ" },
-              ]}
-              value={statusFilter}
-              onChange={(value) => value && setStatusFilter(value)}
-              allowDeselect={false}
-            />
-            <Button
-              variant="light"
-              color="blue"
-              leftSection={<IconPlus size={16} />}
-              onClick={() => {
-                setNewTask({
-                  title: "",
-                  description: "",
-                  status: "planning",
-                  priority: "medium",
-                  projectId: id || "",
-                  assigneeId: "",
-                  tags: [],
-                  progress: 0,
-                  dueDate: new Date().toISOString(),
-                });
-                setIsAddTaskModalOpen(true);
-              }}
-              size="sm"
-            >
-              タスクを追加
-            </Button>
-          </Group>
+      <Stack>
+        <Group justify="space-between">
+          <Select
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value || "all")}
+            data={[
+              { value: "all", label: "すべて" },
+              { value: "planning", label: "未着手" },
+              { value: "in_progress", label: "進行中" },
+              { value: "completed", label: "完了" },
+              { value: "archived", label: "アーカイブ" },
+            ]}
+            w={150}
+          />
+          <Button
+            leftSection={<IconPlus size={14} />}
+            onClick={() => setIsAddTaskModalOpen(true)}
+          >
+            タスクを追加
+          </Button>
         </Group>
 
-        {filteredTasks.length === 0 ? (
-          <Card
-            withBorder
-            p="xl"
-            style={{ backgroundColor: "var(--mantine-color-gray-0)" }}
-          >
-            <Stack align="center" gap="md">
-              <IconList
-                size={40}
-                style={{ color: "var(--mantine-color-gray-5)" }}
-              />
-              <Text c="dimmed" ta="center">
-                タスクはまだありません。
-                <br />
-                「タスクを追加」ボタンから新しいタスクを作成できます。
-              </Text>
-            </Stack>
-          </Card>
-        ) : (
-          <Table highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>タイトル</Table.Th>
-                <Table.Th>ステータス</Table.Th>
-                <Table.Th>優先度</Table.Th>
-                <Table.Th>担当者</Table.Th>
-                <Table.Th>期限日</Table.Th>
-                <Table.Th>操作</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {filteredTasks.map((task: Task) => (
-                <Table.Tr key={task.id} style={{ cursor: "pointer" }}>
-                  <Table.Td onClick={() => setSelectedTask(task)}>
-                    <Group gap="xs">
-                      <Text size="sm" fw={500}>
-                        {task.title}
-                      </Text>
-                      {task.tags && task.tags.length > 0 && (
-                        <Group gap={4}>
-                          {task.tags.map((tag: string) => (
-                            <Badge key={tag} size="xs" variant="light">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </Group>
-                      )}
-                    </Group>
-                    {task.description && (
-                      <Text size="xs" c="dimmed" lineClamp={1}>
-                        {task.description}
-                      </Text>
-                    )}
-                  </Table.Td>
-                  <Table.Td onClick={() => setSelectedTask(task)}>
-                    <Badge
-                      color={
-                        task.status === "completed"
-                          ? "green"
-                          : task.status === "in_progress"
-                            ? "blue"
-                            : task.status === "archived"
-                              ? "gray"
-                              : "gray"
-                      }
-                    >
-                      {task.status === "completed"
-                        ? "完了"
-                        : task.status === "in_progress"
-                          ? "進行中"
-                          : task.status === "archived"
-                            ? "アーカイブ"
-                            : "未着手"}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td onClick={() => setSelectedTask(task)}>
-                    <Badge
-                      color={
-                        task.priority === "high"
-                          ? "red"
-                          : task.priority === "medium"
-                            ? "yellow"
-                            : "green"
-                      }
-                    >
-                      {task.priority === "high"
-                        ? "高"
-                        : task.priority === "medium"
-                          ? "中"
-                          : "低"}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td onClick={() => setSelectedTask(task)}>
-                    <Group gap="xs">
-                      <Avatar size="sm" radius="xl">
-                        {task.assigneeId[0]}
-                      </Avatar>
-                      <Text size="sm">{task.assigneeId}</Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td onClick={() => setSelectedTask(task)}>
-                    <Group gap="xs">
-                      <IconCalendar size={14} style={{ color: "gray" }} />
-                      <Text size="sm">
-                        {task.dueDate
-                          ? new Date(task.dueDate).toLocaleDateString("ja-JP")
-                          : "-"}
-                      </Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>タイトル</Table.Th>
+              <Table.Th>優先度</Table.Th>
+              <Table.Th>ステータス</Table.Th>
+              <Table.Th>進捗</Table.Th>
+              <Table.Th>期限</Table.Th>
+              <Table.Th>担当者</Table.Th>
+              <Table.Th>操作</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {filteredTasks.map((task) => (
+              <Table.Tr
+                key={task.id}
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate(`/tasks/${task.id}`)}
+              >
+                <Table.Td>{task.title}</Table.Td>
+                <Table.Td>
+                  <Badge color={getPriorityColor(task.priority)}>
+                    {getPriorityLabel(task.priority)}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Badge color={getStatusColor(task.status)}>
+                    {getStatusLabel(task.status)}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Progress value={task.progress} size="sm" />
+                </Table.Td>
+                <Table.Td>
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString()
+                    : "未設定"}
+                </Table.Td>
+                <Table.Td>User {task.assigneeId}</Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
                     <ActionIcon
-                      variant="light"
-                      color="red"
-                      size="sm"
+                      variant="subtle"
+                      color="blue"
                       onClick={(e) => {
-                        e.preventDefault();
                         e.stopPropagation();
                         setSelectedTask(task);
-                        setNewTask({
-                          title: task.title,
-                          description: task.description || "",
-                          status: task.status,
-                          priority: task.priority,
-                          projectId: task.projectId,
-                          assigneeId: task.assigneeId,
-                          dueDate: task.dueDate || "",
-                          tags: task.tags || [],
-                          progress: task.progress || 0,
-                        });
-                        handleDeleteTask();
+                      }}
+                    >
+                      <IconEdit size={14} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTask(task);
+                        setIsDeleteTaskModalOpen(true);
                       }}
                     >
                       <IconTrash size={14} />
                     </ActionIcon>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        )}
-      </Card>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Stack>
     );
   };
 
