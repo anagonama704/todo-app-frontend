@@ -6,6 +6,7 @@ import { Today } from "../pages/Tasks/Today";
 import { Important } from "../pages/Tasks/Important";
 import { Overdue } from "../pages/Tasks/Overdue";
 import { Completed } from "../pages/Tasks/Completed";
+import { TaskDetail } from "../pages/Tasks/TaskDetail";
 import { Projects } from "../pages/Projects/Projects";
 import { Tags } from "../pages/Tags/Tags";
 import { Reports } from "../pages/Reports/Reports";
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
       {
         path: "tasks/completed",
         element: <Completed />,
+      },
+      {
+        path: "tasks/:id",
+        element: <TaskDetail />,
       },
       {
         path: "projects",
