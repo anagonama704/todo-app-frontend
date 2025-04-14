@@ -21,6 +21,8 @@ import {
   IconChevronRight,
   IconClock,
 } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
+import { useTasksStore } from "../../features/tasks/store/tasks";
 
 type ViewType = "month" | "week" | "day";
 
@@ -29,6 +31,8 @@ export const Calendar = () => {
   const isDark = colorScheme === "dark";
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<ViewType>("month");
+  const navigate = useNavigate();
+  const { tasks } = useTasksStore();
 
   // 月の最初の日を取得
   const getFirstDayOfMonth = (date: Date) => {
@@ -177,77 +181,111 @@ export const Calendar = () => {
     return `${hour}:00`;
   });
 
-  const renderDateCell = (day: { date: Date; isCurrentMonth: boolean }) => (
-    <Box
-      p="xs"
-      style={{
-        minHeight: currentView === "month" ? "100px" : "auto",
-        borderRight: isDark
-          ? "1px solid var(--mantine-color-dark-4)"
-          : "1px solid var(--mantine-color-gray-2)",
-        borderLeft: isDark
-          ? "1px solid var(--mantine-color-dark-4)"
-          : "1px solid var(--mantine-color-gray-2)",
-        borderBottom: isDark
-          ? "1px solid var(--mantine-color-dark-4)"
-          : "1px solid var(--mantine-color-gray-2)",
-        backgroundColor: day.isCurrentMonth
-          ? undefined
-          : isDark
-            ? "var(--mantine-color-dark-6)"
-            : "var(--mantine-color-gray-0)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        cursor: "pointer",
-      }}
-      onClick={() => {
-        setSelectedDate(day.date);
-        setCurrentView("day");
-      }}
-    >
-      {isToday(day.date) ? (
-        <Badge
-          size="lg"
-          radius="xl"
-          variant="filled"
-          color="blue"
-          style={{
-            width: "32px",
-            height: "32px",
-            padding: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {day.date.getDate()}
-        </Badge>
-      ) : (
-        <Text
-          size="sm"
-          c={
-            !day.isCurrentMonth
-              ? "dimmed"
-              : day.date.getDay() === 0
-                ? "red"
-                : day.date.getDay() === 6
-                  ? "blue"
-                  : undefined
-          }
-          style={{
-            width: "32px",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {day.date.getDate()}
-        </Text>
-      )}
-    </Box>
-  );
+  const renderDateCell = (day: { date: Date; isCurrentMonth: boolean }) => {
+    const dayTasks = tasks.filter(
+      (task) =>
+        task.dueDate &&
+        new Date(task.dueDate).toDateString() === day.date.toDateString()
+    );
+
+    return (
+      <Box
+        p="xs"
+        style={{
+          minHeight: currentView === "month" ? "100px" : "auto",
+          borderRight: isDark
+            ? "1px solid var(--mantine-color-dark-4)"
+            : "1px solid var(--mantine-color-gray-2)",
+          borderLeft: isDark
+            ? "1px solid var(--mantine-color-dark-4)"
+            : "1px solid var(--mantine-color-gray-2)",
+          borderBottom: isDark
+            ? "1px solid var(--mantine-color-dark-4)"
+            : "1px solid var(--mantine-color-gray-2)",
+          backgroundColor: day.isCurrentMonth
+            ? undefined
+            : isDark
+              ? "var(--mantine-color-dark-6)"
+              : "var(--mantine-color-gray-0)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          cursor: "pointer",
+        }}
+        onClick={() => {
+          setSelectedDate(day.date);
+          setCurrentView("day");
+        }}
+      >
+        {isToday(day.date) ? (
+          <Badge
+            size="lg"
+            radius="xl"
+            variant="filled"
+            color="blue"
+            style={{
+              width: "32px",
+              height: "32px",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {day.date.getDate()}
+          </Badge>
+        ) : (
+          <Text
+            size="sm"
+            c={
+              !day.isCurrentMonth
+                ? "dimmed"
+                : day.date.getDay() === 0
+                  ? "red"
+                  : day.date.getDay() === 6
+                    ? "blue"
+                    : undefined
+            }
+            style={{
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {day.date.getDate()}
+          </Text>
+        )}
+
+        {dayTasks.length > 0 && (
+          <Stack gap={2} mt={4} w="100%">
+            {dayTasks.map((task) => (
+              <Box
+                key={task.id}
+                p={4}
+                style={{
+                  backgroundColor: isDark
+                    ? "var(--mantine-color-dark-5)"
+                    : "var(--mantine-color-gray-1)",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/tasks/${task.id}`);
+                }}
+              >
+                <Text size="xs" lineClamp={1}>
+                  {task.title}
+                </Text>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Box>
+    );
+  };
 
   const renderMonthView = () => (
     <Grid columns={7} gutter={0}>
