@@ -23,6 +23,7 @@ import {
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useTasksStore } from "../../features/tasks/store/tasks";
+import styles from "./Calendar.module.css";
 
 type ViewType = "month" | "week" | "day";
 
@@ -191,6 +192,7 @@ export const Calendar = () => {
     return (
       <Box
         p="xs"
+        className={styles.calendarCell}
         style={{
           minHeight: currentView === "month" ? "100px" : "auto",
           borderRight: isDark
