@@ -660,6 +660,7 @@ const ProjectDetail = () => {
                 key={task.id}
                 style={{ cursor: "pointer" }}
                 onClick={() => navigate(`/tasks/${task.id}`)}
+                data-hover
               >
                 <Table.Td>{task.title}</Table.Td>
                 <Table.Td>
