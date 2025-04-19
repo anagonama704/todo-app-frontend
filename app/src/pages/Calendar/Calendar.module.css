@@ -1,0 +1,11 @@
+.calendarCell {
+  transition: background-color 0.2s ease;
+}
+
+.calendarCell:hover {
+  background-color: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme="dark"] .calendarCell:hover {
+  background-color: var(--mantine-color-dark-5);
+}
