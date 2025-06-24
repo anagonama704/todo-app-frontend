@@ -242,7 +242,7 @@ export function Projects() {
                         variant="light"
                         onClick={() => navigate("/projects/new")}
                       >
-                        新規プロジェクトを作成
+                        新規作成・・・
                       </Button>
                     </Stack>
                   </Paper>

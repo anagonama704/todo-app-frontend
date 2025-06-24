@@ -568,7 +568,7 @@ export const Today = () => {
                           /* タスク作成画面への遷移を実装 */
                         }}
                       >
-                        新規タスクを作成
+                        新規作成・・・
                       </Button>
                     </Stack>
                   </Paper>
